@@ -1,0 +1,459 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,7 @@
++.DS_Store
++node_modules/
++dist/
++*.log
++.vscode/
++.env
++.env.local
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,51 @@
++# Tudu — UI Mockup
++
++Static UI mockup of the Tudu redesign. **Stale data. No backend.**
++
++## Stack
++
++- Vite + React 18
++- Tailwind CSS 3
++- Radix UI primitives
++- Framer Motion
++- Lucide icons
++- dnd-kit
++
++## Run
++
++```bash
++npm install
++npm run dev
++# http://localhost:5174
++```
++
++## Roadmap
++
++This repo is built by a series of patch files. Each patch is applied with `git apply`.
++
++- Part 1 (this patch) — scaffold
++- Part 2 — Landing shell + sticky-glass navbar + mega menus
++- Part 3 — Hero + LiveBoardHero
++- Part 4 — Logo strip + Problem section
++- Part 5 — Bento grid
++- Part 6 — How it works (sticky scroll) + Under the hood
++- Part 7 — Tier gating + Pricing + Changelog + Social proof + Final CTA + Footer
++- Part 8 — App shell (rail + topbar + detail panel)
++- Part 9 — Sidebar
++- Part 10 — List view
++- Part 11 — Board view
++- Part 12 — Stats + Analytics
++- Part 13 — Settings
++- Part 14 — Login + Signup + Pricing page + Command palette + ShortcutHelp
++- Part 15 — Docs + API + Webhooks + Tokens + Changelog + Help + Contact + Blog + Privacy + Terms
++
++## Rules the mockup follows
++
++- Dark = greys + tudu green accent. No spotlight. Light mode unchanged.
++- Full-bleed app content.
++- Every landing animation is a real component.
++- Static mockup data in `src/mock/`, no network calls.
++
++## License
++
++Private — do not distribute.
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,17 @@
++<!doctype html>
++<html lang="en" class="dark">
++  <head>
++    <meta charset="UTF-8" />
++    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
++    <title>Tudu — UI Mockup</title>
++    <meta name="description" content="Tudu UI mockup — stale data, no backend." />
++    <link rel="preconnect" href="https://fonts.googleapis.com" />
++    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
++    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
++  </head>
++  <body>
++    <div id="root"></div>
++    <script type="module" src="/src/main.jsx"></script>
++  </body>
++</html>
+diff --git a/jsconfig.json b/jsconfig.json
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/jsconfig.json
+@@ -0,0 +1,9 @@
++{
++  "compilerOptions": {
++    "baseUrl": ".",
++    "paths": {
++      "@/*": ["./src/*"]
++    }
++  },
++  "include": ["src"]
++}
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,43 @@
++{
++  "name": "tudu-ui-mockup",
++  "private": true,
++  "version": "0.0.0",
++  "type": "module",
++  "scripts": {
++    "dev": "vite",
++    "build": "vite build",
++    "preview": "vite preview"
++  },
++  "dependencies": {
++    "@dnd-kit/core": "^6.1.0",
++    "@dnd-kit/sortable": "^8.0.0",
++    "@dnd-kit/utilities": "^3.2.2",
++    "@radix-ui/react-checkbox": "^1.1.2",
++    "@radix-ui/react-dialog": "^1.1.2",
++    "@radix-ui/react-dropdown-menu": "^2.1.2",
++    "@radix-ui/react-popover": "^1.1.2",
++    "@radix-ui/react-scroll-area": "^1.2.0",
++    "@radix-ui/react-select": "^2.1.2",
++    "@radix-ui/react-switch": "^1.1.1",
++    "@radix-ui/react-tabs": "^1.1.1",
++    "@radix-ui/react-tooltip": "^1.1.3",
++    "canvas-confetti": "^1.9.3",
++    "clsx": "^2.1.1",
++    "date-fns": "^3.6.0",
++    "framer-motion": "^11.11.9",
++    "lucide-react": "^0.454.0",
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1",
++    "react-router-dom": "^6.27.0",
++    "tailwind-merge": "^2.5.4"
++  },
++  "devDependencies": {
++    "@types/react": "^18.3.12",
++    "@types/react-dom": "^18.3.1",
++    "@vitejs/plugin-react": "^4.3.3",
++    "autoprefixer": "^10.4.20",
++    "postcss": "^8.4.47",
++    "tailwindcss": "^3.4.14",
++    "vite": "^5.4.10"
++  }
++}
+diff --git a/postcss.config.js b/postcss.config.js
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/postcss.config.js
+@@ -0,0 +1,6 @@
++export default {
++  plugins: {
++    tailwindcss: {},
++    autoprefixer: {},
++  },
++};
+diff --git a/public/favicon.svg b/public/favicon.svg
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/public/favicon.svg
+@@ -0,0 +1,6 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
++  <circle cx="256" cy="256" r="240" fill="#22c55e"/>
++  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
++    <path d="M154 272 L226 342 L372 172" stroke-width="54"/>
++  </g>
++</svg>
+diff --git a/src/App.jsx b/src/App.jsx
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/App.jsx
+@@ -0,0 +1,11 @@
++import { Routes, Route } from 'react-router-dom';
++import Landing from './pages/Landing.jsx';
++
++export default function App() {
++  return (
++    <Routes>
++      <Route path="/" element={<Landing />} />
++      <Route path="*" element={<Landing />} />
++    </Routes>
++  );
++}
+diff --git a/src/index.css b/src/index.css
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/index.css
+@@ -0,0 +1,107 @@
++@tailwind base;
++@tailwind components;
++@tailwind utilities;
++
++@layer base {
++  :root {
++    color-scheme: dark;
++
++    --bg-page:      #0E0E10;
++    --bg-surface:   #16161A;
++    --bg-elevated:  #1C1C21;
++    --bg-hover:     #222228;
++    --bg-active:    #2A2A32;
++
++    --border-subtle:  rgba(255, 255, 255, 0.06);
++    --border-default: rgba(255, 255, 255, 0.10);
++    --border-strong:  rgba(255, 255, 255, 0.16);
++
++    --text-primary:   #ECECEF;
++    --text-secondary: #A0A0AB;
++    --text-tertiary:  #6B6B78;
++    --text-inverse:   #0E0E10;
++
++    --accent:        #22C55E;
++    --accent-hover:  #16A34A;
++    --accent-subtle: rgba(34, 197, 94, 0.12);
++    --accent-muted:  rgba(34, 197, 94, 0.25);
++
++    --status-todo:    #8B8B94;
++    --status-doing:   #F5A524;
++    --status-done:    #22C55E;
++    --status-overdue: #EF4444;
++
++    --r-sm: 4px;
++    --r-md: 6px;
++    --r-lg: 8px;
++  }
++
++  :root.light {
++    color-scheme: light;
++
++    --bg-page:      #FAFAFA;
++    --bg-surface:   #FFFFFF;
++    --bg-elevated:  #FFFFFF;
++    --bg-hover:     #F4F4F5;
++    --bg-active:    #EBEBEE;
++
++    --border-subtle:  rgba(0, 0, 0, 0.04);
++    --border-default: rgba(0, 0, 0, 0.08);
++    --border-strong:  rgba(0, 0, 0, 0.14);
++
++    --text-primary:   #0E0E10;
++    --text-secondary: #52525B;
++    --text-tertiary:  #8B8B94;
++    --text-inverse:   #FFFFFF;
++  }
++
++  html {
++    -webkit-font-smoothing: antialiased;
++    -moz-osx-font-smoothing: grayscale;
++  }
++
++  body {
++    background-color: var(--bg-page);
++    color: var(--text-primary);
++    font-family: 'Inter', system-ui, sans-serif;
++    font-size: 0.875rem;
++    line-height: 1.5;
++    min-height: 100vh;
++    overflow-x: hidden;
++  }
++
++  :root.light body {
++    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
++    background-size: 160px 160px;
++  }
++
++  ::selection {
++    background: var(--accent-muted);
++    color: var(--text-primary);
++  }
++
++  :focus-visible {
++    outline: 2px solid var(--accent);
++    outline-offset: 2px;
++    border-radius: var(--r-sm);
++  }
++
++  ::-webkit-scrollbar { width: 8px; height: 8px; }
++  ::-webkit-scrollbar-track { background: transparent; }
++  ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
++  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
++}
++
++@layer utilities {
++  .scroll-hidden::-webkit-scrollbar { display: none; }
++  .scroll-hidden { scrollbar-width: none; -ms-overflow-style: none; }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  *, *::before, *::after {
++    animation-duration: 0.01ms !important;
++    animation-iteration-count: 1 !important;
++    transition-duration: 0.01ms !important;
++    scroll-behavior: auto !important;
++  }
++}
+diff --git a/src/lib/utils.js b/src/lib/utils.js
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/lib/utils.js
+@@ -0,0 +1,6 @@
++import { clsx } from 'clsx';
++import { twMerge } from 'tailwind-merge';
++
++export function cn(...inputs) {
++  return twMerge(clsx(inputs));
++}
+diff --git a/src/main.jsx b/src/main.jsx
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/main.jsx
+@@ -0,0 +1,13 @@
++import React from 'react';
++import ReactDOM from 'react-dom/client';
++import { HashRouter } from 'react-router-dom';
++import App from './App.jsx';
++import './index.css';
++
++ReactDOM.createRoot(document.getElementById('root')).render(
++  <React.StrictMode>
++    <HashRouter>
++      <App />
++    </HashRouter>
++  </React.StrictMode>
++);
+diff --git a/src/pages/Landing.jsx b/src/pages/Landing.jsx
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/pages/Landing.jsx
+@@ -0,0 +1,17 @@
++export default function Landing() {
++  return (
++    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center">
++      <div className="font-brand text-6xl text-brand leading-none">tudu</div>
++      <h1 className="text-3xl font-semibold text-ink">
++        Mockup — Part 1 (Foundation)
++      </h1>
++      <p className="text-sm text-ink-muted max-w-md">
++        Vite + React + Tailwind + Radix + Framer Motion installed.
++        Next: Part 2 — Landing shell + sticky-glass navbar.
++      </p>
++      <div className="mt-4 text-xs text-ink-faint font-mono">
++        stale data · no backend · mockup
++      </div>
++    </div>
++  );
++}
+diff --git a/tailwind.config.js b/tailwind.config.js
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tailwind.config.js
+@@ -0,0 +1,66 @@
++/** @type {import('tailwindcss').Config} */
++export default {
++  content: ['./index.html', './src/**/*.{js,jsx}'],
++  darkMode: 'class',
++  theme: {
++    extend: {
++      colors: {
++        canvas: 'var(--bg-page)',
++        surface: 'var(--bg-surface)',
++        raised: 'var(--bg-elevated)',
++        subtle: 'var(--bg-hover)',
++        active: 'var(--bg-active)',
++        line: {
++          DEFAULT: 'var(--border-default)',
++          subtle: 'var(--border-subtle)',
++          strong: 'var(--border-strong)',
++        },
++        ink: {
++          DEFAULT: 'var(--text-primary)',
++          muted: 'var(--text-secondary)',
++          faint: 'var(--text-tertiary)',
++          inverse: 'var(--text-inverse)',
++        },
++        brand: {
++          DEFAULT: 'var(--accent)',
++          hover: 'var(--accent-hover)',
++          subtle: 'var(--accent-subtle)',
++          muted: 'var(--accent-muted)',
++        },
++        todo: 'var(--status-todo)',
++        doing: 'var(--status-doing)',
++        done: 'var(--status-done)',
++        overdue: 'var(--status-overdue)',
++      },
++      fontFamily: {
++        sans: ['Inter', 'system-ui', 'sans-serif'],
++        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
++        brand: ['Caveat', 'cursive'],
++      },
++      borderRadius: {
++        sm: 'var(--r-sm)',
++        md: 'var(--r-md)',
++        lg: 'var(--r-lg)',
++      },
++      transitionTimingFunction: {
++        standard: 'cubic-bezier(0.2, 0, 0, 1)',
++        emphasized: 'cubic-bezier(0.3, 0, 0, 1)',
++      },
++      keyframes: {
++        'fade-in': {
++          '0%': { opacity: '0' },
++          '100%': { opacity: '1' },
++        },
++        'slide-up': {
++          '0%': { opacity: '0', transform: 'translateY(8px)' },
++          '100%': { opacity: '1', transform: 'translateY(0)' },
++        },
++      },
++      animation: {
++        'fade-in': 'fade-in 180ms cubic-bezier(0.2, 0, 0, 1)',
++        'slide-up': 'slide-up 260ms cubic-bezier(0.3, 0, 0, 1)',
++      },
++    },
++  },
++  plugins: [],
++};
+diff --git a/vite.config.js b/vite.config.js
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/vite.config.js
+@@ -0,0 +1,16 @@
++import { defineConfig } from 'vite';
++import react from '@vitejs/plugin-react';
++import { fileURLToPath, URL } from 'node:url';
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    alias: {
++      '@': fileURLToPath(new URL('./src', import.meta.url)),
++    },
++  },
++  server: {
++    port: 5174,
++    open: true,
++  },
++});
