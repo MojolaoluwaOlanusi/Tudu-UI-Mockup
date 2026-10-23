@@ -1,0 +1,785 @@
+diff --git a/src/App.jsx b/src/App.jsx
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -1,11 +1,29 @@
+-import { Routes, Route } from 'react-router-dom';
+-import Landing from './pages/Landing.jsx';
+-
+-export default function App() {
+-  return (
+-    <Routes>
+-      <Route path="/" element={<Landing />} />
+-      <Route path="*" element={<Landing />} />
+-    </Routes>
+-  );
+-}
++import { Routes, Route } from 'react-router-dom';
++import { MotionConfig } from 'framer-motion';
++import Landing from './pages/Landing.jsx';
++import Stub from './pages/Stub.jsx';
++
++export default function App() {
++  return (
++    <MotionConfig reducedMotion="user">
++      <Routes>
++        <Route path="/" element={<Landing />} />
++        <Route path="/pricing" element={<Stub title="Pricing" part={7} note="Full pricing with monthly/yearly toggle and currency switcher lands in Part 7." />} />
++        <Route path="/login" element={<Stub title="Sign in" part={14} />} />
++        <Route path="/signup" element={<Stub title="Create account" part={14} />} />
++        <Route path="/changelog" element={<Stub title="Changelog" part={7} />} />
++        <Route path="/docs" element={<Stub title="Documentation" part={15} />} />
++        <Route path="/docs/*" element={<Stub title="Documentation" part={15} />} />
++        <Route path="/solutions/*" element={<Stub title="Solutions" part={15} />} />
++        <Route path="/help" element={<Stub title="Help center" part={15} />} />
++        <Route path="/contact" element={<Stub title="Contact" part={15} />} />
++        <Route path="/blog" element={<Stub title="Blog" part={15} />} />
++        <Route path="/community" element={<Stub title="Community" part={15} />} />
++        <Route path="/status" element={<Stub title="Status page" part={15} />} />
++        <Route path="/privacy" element={<Stub title="Privacy" part={15} />} />
++        <Route path="/terms" element={<Stub title="Terms" part={15} />} />
++        <Route path="/webhooks" element={<Stub title="Webhooks" part={15} />} />
++        <Route path="*" element={<Landing />} />
++      </Routes>
++    </MotionConfig>
++  );
++}
+diff --git a/src/main.jsx b/src/main.jsx
+--- a/src/main.jsx
++++ b/src/main.jsx
+@@ -3,6 +3,7 @@
+ import { HashRouter } from 'react-router-dom';
+ import App from './App.jsx';
+ import './index.css';
++import './styles/brand.css';
+ 
+ ReactDOM.createRoot(document.getElementById('root')).render(
+   <React.StrictMode>
+diff --git a/src/pages/Landing.jsx b/src/pages/Landing.jsx
+--- a/src/pages/Landing.jsx
++++ b/src/pages/Landing.jsx
+@@ -1,17 +1,41 @@
+-export default function Landing() {
+-  return (
+-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center">
+-      <div className="font-brand text-6xl text-brand leading-none">tudu</div>
+-      <h1 className="text-3xl font-semibold text-ink">
+-        Mockup — Part 1 (Foundation)
+-      </h1>
+-      <p className="text-sm text-ink-muted max-w-md">
+-        Vite + React + Tailwind + Radix + Framer Motion installed.
+-        Next: Part 2 — Landing shell + sticky-glass navbar.
+-      </p>
+-      <div className="mt-4 text-xs text-ink-faint font-mono">
+-        stale data · no backend · mockup
+-      </div>
+-    </div>
+-  );
+-}
++import Navbar from '@/components/landing/Navbar';
++
++export default function Landing() {
++  return (
++    <div className="min-h-screen bg-canvas">
++      <Navbar />
++      <main className="pt-14">
++        <section className="mx-auto max-w-7xl px-6 py-24 text-center">
++          <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-faint">
++            Part 2 · Landing shell + navbar
++          </p>
++          <h1 className="mt-4 text-3xl font-semibold text-ink">
++            Navbar is live. Landing sections land in Parts 3–7.
++          </h1>
++          <p className="mt-3 max-w-md mx-auto text-sm text-ink-muted">
++            Hover each link above to see the mega menus. Resize below 1024px to see the mobile menu.
++          </p>
++          <ul className="mt-10 grid gap-3 max-w-xl mx-auto text-left">
++            {[
++              'Part 3 — Hero + LiveBoardHero',
++              'Part 4 — Logo strip + Problem',
++              'Part 5 — Bento grid',
++              'Part 6 — How it works + Under the hood',
++              'Part 7 — Tier gating, Pricing, Changelog, Social proof, Final CTA, Footer',
++            ].map((s) => (
++              <li
++                key={s}
++                className="rounded-md border border-line bg-surface px-4 py-3 text-xs text-ink-muted"
++              >
++                {s}
++              </li>
++            ))}
++          </ul>
++        </section>
++        <section className="min-h-[120vh] border-t border-line-subtle flex items-center justify-center">
++          <p className="text-xs text-ink-faint">
++            Scroll up to test the sticky-glass navbar.
++          </p>
++        </section>
++      </main>
++    </div>
++  );
++}
+diff --git a/src/styles/brand.css b/src/styles/brand.css
+new file mode 100644
+--- /dev/null
++++ b/src/styles/brand.css
+@@ -0,0 +1,32 @@
++/* Brand utilities — brush stroke on primary CTAs, glass on the sticky navbar */
++
++.brush-stroke {
++  position: relative;
++}
++
++.brush-stroke::before {
++  content: '';
++  position: absolute;
++  left: 10%;
++  right: 10%;
++  bottom: -4px;
++  height: 4px;
++  background: linear-gradient(90deg, transparent, var(--accent), transparent);
++  border-radius: 999px;
++  opacity: 0.55;
++  pointer-events: none;
++  transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1);
++}
++
++.brush-stroke:hover::before {
++  opacity: 1;
++}
++
++.glass {
++  background-color: color-mix(in srgb, var(--bg-surface) 65%, transparent);
++  backdrop-filter: blur(20px) saturate(180%);
++  -webkit-backdrop-filter: blur(20px) saturate(180%);
++  border-bottom: 1px solid var(--border-subtle);
++}
+diff --git a/src/components/brand/Wordmark.jsx b/src/components/brand/Wordmark.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/brand/Wordmark.jsx
+@@ -0,0 +1,33 @@
++export default function Wordmark({ size = 'md' }) {
++  const sizes = {
++    sm: { text: 'text-2xl', check: 'h-3 w-3', gap: 'gap-1' },
++    md: { text: 'text-3xl', check: 'h-4 w-4', gap: 'gap-1.5' },
++    lg: { text: 'text-5xl', check: 'h-6 w-6', gap: 'gap-2' },
++  };
++  const s = sizes[size] || sizes.md;
++  return (
++    <span className={`inline-flex items-baseline ${s.gap}`} aria-label="Tudu">
++      <span className={`font-brand ${s.text} leading-none text-ink`}>tudu</span>
++      <svg
++        className={`${s.check} shrink-0 translate-y-[2px]`}
++        viewBox="0 0 24 24"
++        fill="none"
++        aria-hidden="true"
++      >
++        <circle cx="12" cy="12" r="11" fill="var(--accent)" />
++        <path
++          d="M6.5 12.5l3.5 3.5 7-7"
++          stroke="white"
++          strokeWidth="2.5"
++          strokeLinecap="round"
++          strokeLinejoin="round"
++        />
++      </svg>
++    </span>
++  );
++}
+diff --git a/src/components/ui/BrushButton.jsx b/src/components/ui/BrushButton.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/ui/BrushButton.jsx
+@@ -0,0 +1,21 @@
++import { cn } from '@/lib/utils';
++
++export default function BrushButton({
++  children,
++  variant = 'primary',
++  size = 'md',
++  className = '',
++  ...props
++}) {
++  const base =
++    'relative inline-flex items-center justify-center font-semibold transition-colors duration-200';
++  const sizes = {
++    sm: 'text-xs px-3 py-1.5 rounded-md',
++    md: 'text-sm px-4 py-2 rounded-md',
++  };
++  const variants = {
++    primary: 'bg-brand text-ink-inverse hover:bg-brand-hover shadow-sm',
++    ghost: 'text-ink-muted hover:text-ink hover:bg-subtle',
++  };
++  return (
++    <button
++      className={cn(
++        base,
++        sizes[size],
++        variants[variant],
++        variant === 'primary' && 'brush-stroke',
++        className
++      )}
++      {...props}
++    >
++      {children}
++    </button>
++  );
++}
+diff --git a/src/components/landing/LiveDot.jsx b/src/components/landing/LiveDot.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/LiveDot.jsx
+@@ -0,0 +1,26 @@
++import { useEffect, useState } from 'react';
++
++export default function LiveDot() {
++  const [count, setCount] = useState(12);
++
++  useEffect(() => {
++    const id = setInterval(() => {
++      setCount((c) => {
++        const next = c + (Math.random() > 0.5 ? 1 : -1);
++        return Math.max(6, Math.min(28, next));
++      });
++    }, 4200);
++    return () => clearInterval(id);
++  }, []);
++
++  return (
++    <div className="flex items-center gap-2 text-xs text-ink-muted whitespace-nowrap">
++      <span className="relative flex h-2 w-2">
++        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
++        <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
++      </span>
++      <span>
++        <span className="font-semibold text-ink">{count}</span> people building right now
++      </span>
++    </div>
++  );
++}
+diff --git a/src/components/landing/menu-data.js b/src/components/landing/menu-data.js
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/menu-data.js
+@@ -0,0 +1,73 @@
++import {
++  LayoutGrid,
++  ListFilter,
++  ListChecks,
++  Timer,
++  Focus,
++  BarChart3,
++  Sparkles,
++  Wand2,
++  PartyPopper,
++  User,
++  Users,
++  Building2,
++  Code2,
++  Webhook,
++  KeyRound,
++  GitCommit,
++  BookOpen,
++  LifeBuoy,
++  MessageCircle,
++  Mail,
++  Globe,
++  Newspaper,
++} from 'lucide-react';
++
++export const menus = {
++  product: {
++    label: 'Product',
++    columns: [
++      {
++        heading: 'Plan',
++        items: [
++          { icon: LayoutGrid, title: 'Boards & Kanban', description: 'Drag, WIP limits, templates', href: '/docs/boards' },
++          { icon: ListFilter, title: 'Lists & filters', description: 'Grouping, sort, saved views', href: '/docs/lists' },
++          { icon: ListChecks, title: 'Bulk & shortcuts', description: 'Multi-select, move, delete', href: '/docs/shortcuts' },
++        ],
++      },
++      {
++        heading: 'Focus',
++        items: [
++          { icon: Timer, title: 'Pomodoro', description: 'Focus sessions on any task', href: '/docs/pomodoro' },
++          { icon: Focus, title: 'Time tracking', description: 'Manual and running timers', href: '/docs/time' },
++          { icon: BarChart3, title: 'Analytics', description: 'Personal and team insights', href: '/docs/analytics' },
++        ],
++      },
++      {
++        heading: 'AI magic',
++        highlight: true,
++        items: [
++          { icon: Sparkles, title: 'AI breakdown', description: 'Split tasks into steps', href: '/docs/ai' },
++          { icon: Wand2, title: 'NLP parsing', description: 'Type "tomorrow 9am"', href: '/docs/nlp' },
++          { icon: PartyPopper, title: 'Celebrations', description: 'Confetti on done', href: '/docs/celebrations' },
++        ],
++      },
++    ],
++    footer: { label: 'Try the live demo', href: '/' },
++  },
++  solutions: {
++    label: 'Solutions',
++    columns: [
++      {
++        heading: 'By audience',
++        items: [
++          { icon: User, title: 'For Freelancers', description: 'Sprint + Freelancer template', href: '/solutions/freelancers' },
++          { icon: Users, title: 'For small Teams', description: 'Workspaces, roles, shared boards', href: '/solutions/teams' },
++          { icon: Building2, title: 'For Enterprise', description: 'SAML SSO, SCIM, Audit, On-prem', href: '/solutions/enterprise', comingSoon: true },
++        ],
++      },
++    ],
++  },
++  developers: {
++    label: 'Developers',
++    columns: [
++      {
++        heading: 'Build',
++        items: [
++          { icon: Code2, title: 'Public API', description: 'REST read + write', href: '/docs/api' },
++          { icon: Webhook, title: 'Webhooks', description: 'Signed event deliveries', href: '/webhooks' },
++          { icon: KeyRound, title: 'API tokens', description: 'Personal access tokens', href: '/docs/tokens' },
++          { icon: GitCommit, title: 'Changelog', description: 'Every release, every fix', href: '/changelog' },
++        ],
++      },
++    ],
++  },
++  resources: {
++    label: 'Resources',
++    columns: [
++      {
++        heading: 'Read',
++        items: [
++          { icon: BookOpen, title: 'Documentation', description: 'Everything, in depth', href: '/docs' },
++          { icon: LifeBuoy, title: 'Help center', description: 'How-tos, guides, shortcuts', href: '/help' },
++          { icon: MessageCircle, title: 'Community', description: 'Discord & GitHub Discussions', href: '/community' },
++          { icon: Mail, title: 'Contact us', description: 'olanusimojola@gmail.com', href: '/contact' },
++          { icon: Globe, title: 'Blog & updates', description: 'Product news, tips, SEO', href: '/blog' },
++          { icon: Newspaper, title: 'Status page', description: 'Uptime & incidents', href: '/status' },
++        ],
++      },
++    ],
++  },
++};
+diff --git a/src/components/landing/MegaMenu.jsx b/src/components/landing/MegaMenu.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/MegaMenu.jsx
+@@ -0,0 +1,91 @@
++import { useEffect, useRef } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import { ArrowRight } from 'lucide-react';
++import { Link } from 'react-router-dom';
++
++export default function MegaMenu({ menu, isOpen, onClose }) {
++  const closeTimer = useRef(null);
++
++  const scheduleClose = () => {
++    closeTimer.current = setTimeout(onClose, 150);
++  };
++  const cancelClose = () => {
++    if (closeTimer.current) {
++      clearTimeout(closeTimer.current);
++      closeTimer.current = null;
++    }
++  };
++
++  useEffect(() => () => cancelClose(), []);
++
++  return (
++    <AnimatePresence>
++      {isOpen && (
++        <motion.div
++          initial={{ opacity: 0, y: -6, scale: 0.98 }}
++          animate={{ opacity: 1, y: 0, scale: 1 }}
++          exit={{ opacity: 0, y: -6, scale: 0.98 }}
++          transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
++          onMouseEnter={cancelClose}
++          onMouseLeave={scheduleClose}
++          className="absolute left-0 top-full mt-3 rounded-lg border border-line bg-surface shadow-2xl overflow-hidden"
++          style={{ minWidth: menu.columns.length > 1 ? 640 : 340 }}
++        >
++          <div
++            className="grid"
++            style={{ gridTemplateColumns: `repeat(${menu.columns.length}, minmax(0, 1fr))` }}
++          >
++            {menu.columns.map((col, i) => (
++              <div
++                key={col.heading}
++                className={`p-4 ${col.highlight ? 'bg-brand-subtle' : ''} ${
++                  i > 0 ? 'border-l border-line-subtle' : ''
++                }`}
++              >
++                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
++                  {col.heading}
++                </p>
++                <ul className="-mx-2 space-y-0.5">
++                  {col.items.map((item) => {
++                    const Icon = item.icon;
++                    return (
++                      <li key={item.title}>
++                        <Link
++                          to={item.href}
++                          onClick={onClose}
++                          className="flex items-start gap-3 rounded-md px-2 py-2 transition-colors hover:bg-raised"
++                        >
++                          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line-subtle bg-raised text-ink-muted">
++                            <Icon className="h-3.5 w-3.5" />
++                          </span>
++                          <span className="min-w-0">
++                            <span className="flex items-center gap-1.5 text-[13px] font-medium text-ink">
++                              {item.title}
++                              {item.comingSoon && (
++                                <span className="rounded-sm bg-line-subtle px-1 text-[9px] font-semibold uppercase tracking-wider text-ink-faint">
++                                  Soon
++                                </span>
++                              )}
++                            </span>
++                            <span className="block truncate text-[11px] text-ink-muted">
++                              {item.description}
++                            </span>
++                          </span>
++                        </Link>
++                      </li>
++                    );
++                  })}
++                </ul>
++              </div>
++            ))}
++          </div>
++          {menu.footer && (
++            <Link
++              to={menu.footer.href}
++              onClick={onClose}
++              className="flex items-center justify-between border-t border-line-subtle px-4 py-3 text-xs font-medium text-ink-muted transition-colors hover:bg-raised hover:text-ink"
++            >
++              <span>{menu.footer.label}</span>
++              <ArrowRight className="h-3.5 w-3.5" />
++            </Link>
++          )}
++        </motion.div>
++      )}
++    </AnimatePresence>
++  );
++}
+diff --git a/src/components/landing/Navbar.jsx b/src/components/landing/Navbar.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/Navbar.jsx
+@@ -0,0 +1,134 @@
++import { useState, useEffect, useRef } from 'react';
++import { Link, useLocation } from 'react-router-dom';
++import { AnimatePresence, motion } from 'framer-motion';
++import { ChevronDown, Menu as MenuIcon } from 'lucide-react';
++import Wordmark from '@/components/brand/Wordmark';
++import BrushButton from '@/components/ui/BrushButton';
++import LiveDot from './LiveDot';
++import MegaMenu from './MegaMenu';
++import MobileMenu from './MobileMenu';
++import { menus } from './menu-data';
++
++export default function Navbar() {
++  const [openMenu, setOpenMenu] = useState(null);
++  const [mobileOpen, setMobileOpen] = useState(false);
++  const [scrolled, setScrolled] = useState(false);
++  const closeTimer = useRef(null);
++  const location = useLocation();
++
++  useEffect(() => {
++    const onScroll = () => setScrolled(window.scrollY > 8);
++    onScroll();
++    window.addEventListener('scroll', onScroll, { passive: true });
++    return () => window.removeEventListener('scroll', onScroll);
++  }, []);
++
++  useEffect(() => {
++    setOpenMenu(null);
++    setMobileOpen(false);
++  }, [location.pathname]);
++
++  const scheduleClose = () => {
++    if (closeTimer.current) clearTimeout(closeTimer.current);
++    closeTimer.current = setTimeout(() => setOpenMenu(null), 150);
++  };
++  const cancelClose = () => {
++    if (closeTimer.current) {
++      clearTimeout(closeTimer.current);
++      closeTimer.current = null;
++    }
++  };
++
++  const order = ['product', 'solutions', 'developers', 'resources'];
++
++  return (
++    <>
++      <AnimatePresence>
++        {openMenu && (
++          <motion.div
++            initial={{ opacity: 0 }}
++            animate={{ opacity: 1 }}
++            exit={{ opacity: 0 }}
++            transition={{ duration: 0.15 }}
++            className="fixed inset-0 z-30 bg-black/30 backdrop-blur-[2px]"
++            onClick={() => setOpenMenu(null)}
++          />
++        )}
++      </AnimatePresence>
++
++      <header
++        className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${
++          scrolled ? 'glass border-b border-line-subtle' : ''
++        }`}
++      >
++        <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-6">
++          <Link to="/" className="shrink-0" aria-label="Tudu home">
++            <Wordmark size="sm" />
++          </Link>
++
++          <nav className="hidden lg:flex items-center gap-1">
++            {order.map((key) => {
++              const menu = menus[key];
++              const isOpen = openMenu === key;
++              return (
++                <div
++                  key={key}
++                  className="relative"
++                  onMouseEnter={() => {
++                    cancelClose();
++                    setOpenMenu(key);
++                  }}
++                  onMouseLeave={scheduleClose}
++                >
++                  <button
++                    type="button"
++                    className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
++                      isOpen
++                        ? 'text-ink bg-raised'
++                        : 'text-ink-muted hover:text-ink hover:bg-raised'
++                    }`}
++                    aria-expanded={isOpen}
++                    aria-haspopup="true"
++                  >
++                    {menu.label}
++                    <ChevronDown
++                      className={`h-3 w-3 transition-transform ${
++                        isOpen ? 'rotate-180' : ''
++                      }`}
++                    />
++                  </button>
++                  <MegaMenu
++                    menu={menu}
++                    isOpen={isOpen}
++                    onClose={() => setOpenMenu(null)}
++                  />
++                </div>
++              );
++            })}
++            <Link
++              to="/pricing"
++              className="rounded-md px-3 py-1.5 text-[13px] font-medium text-ink-muted transition-colors hover:bg-raised hover:text-ink"
++            >
++              Pricing
++            </Link>
++          </nav>
++
++          <div className="ml-auto flex items-center gap-2 sm:gap-3">
++            <div className="hidden lg:block">
++              <LiveDot />
++            </div>
++            <Link
++              to="/login"
++              className="rounded-md px-2 py-1.5 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink sm:px-3"
++            >
++              Sign in
++            </Link>
++            <Link to="/signup">
++              <BrushButton size="sm">Start free</BrushButton>
++            </Link>
++            <button
++              type="button"
++              onClick={() => setMobileOpen(true)}
++              className="rounded-md p-2 text-ink-muted transition-colors hover:bg-subtle hover:text-ink lg:hidden"
++              aria-label="Open menu"
++            >
++              <MenuIcon className="h-5 w-5" />
++            </button>
++          </div>
++        </div>
++      </header>
++
++      <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} />
++    </>
++  );
++}
+diff --git a/src/components/landing/MobileMenu.jsx b/src/components/landing/MobileMenu.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/MobileMenu.jsx
+@@ -0,0 +1,128 @@
++import { useEffect, useState } from 'react';
++import { AnimatePresence, motion } from 'framer-motion';
++import { ChevronDown, X } from 'lucide-react';
++import { Link } from 'react-router-dom';
++import { menus } from './menu-data';
++import BrushButton from '@/components/ui/BrushButton';
++import LiveDot from './LiveDot';
++
++export default function MobileMenu({ open, onClose }) {
++  const [expanded, setExpanded] = useState(null);
++
++  useEffect(() => {
++    if (!open) return;
++    const prev = document.body.style.overflow;
++    document.body.style.overflow = 'hidden';
++    return () => {
++      document.body.style.overflow = prev;
++    };
++  }, [open]);
++
++  useEffect(() => {
++    if (!open) setExpanded(null);
++  }, [open]);
++
++  return (
++    <AnimatePresence>
++      {open && (
++        <motion.div
++          initial={{ opacity: 0 }}
++          animate={{ opacity: 1 }}
++          exit={{ opacity: 0 }}
++          transition={{ duration: 0.18 }}
++          className="fixed inset-0 z-50 flex flex-col bg-canvas lg:hidden"
++        >
++          <div className="flex h-14 items-center justify-between border-b border-line-subtle px-6">
++            <span className="font-brand text-2xl leading-none text-ink">tudu</span>
++            <button
++              type="button"
++              onClick={onClose}
++              className="rounded-md p-2 text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
++              aria-label="Close menu"
++            >
++              <X className="h-5 w-5" />
++            </button>
++          </div>
++          <div className="flex-1 overflow-y-auto px-6 py-6 scroll-hidden">
++            {['product', 'solutions', 'developers', 'resources'].map((key) => {
++              const menu = menus[key];
++              const isOpen = expanded === key;
++              return (
++                <div key={key} className="border-b border-line-subtle last:border-0">
++                  <button
++                    type="button"
++                    className="flex w-full items-center justify-between py-4 text-left"
++                    onClick={() => setExpanded(isOpen ? null : key)}
++                  >
++                    <span className="text-base font-medium text-ink">{menu.label}</span>
++                    <ChevronDown
++                      className={`h-4 w-4 text-ink-muted transition-transform ${
++                        isOpen ? 'rotate-180' : ''
++                      }`}
++                    />
++                  </button>
++                  {isOpen && (
++                    <div className="space-y-4 pb-4">
++                      {menu.columns.map((col) => (
++                        <div key={col.heading}>
++                          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
++                            {col.heading}
++                          </p>
++                          <ul className="space-y-1">
++                            {col.items.map((item) => {
++                              const Icon = item.icon;
++                              return (
++                                <li key={item.title}>
++                                  <Link
++                                    to={item.href}
++                                    onClick={onClose}
++                                    className="flex items-start gap-3 rounded-md p-2 hover:bg-raised"
++                                  >
++                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line-subtle bg-raised text-ink-muted">
++                                      <Icon className="h-3.5 w-3.5" />
++                                    </span>
++                                    <span className="min-w-0">
++                                      <span className="block text-[13px] font-medium text-ink">
++                                        {item.title}
++                                        {item.comingSoon && (
++                                          <span className="ml-1.5 rounded-sm bg-line-subtle px-1 text-[9px] font-semibold uppercase tracking-wider text-ink-faint">
++                                            Soon
++                                          </span>
++                                        )}
++                                      </span>
++                                      <span className="block text-[11px] text-ink-muted">
++                                        {item.description}
++                                      </span>
++                                    </span>
++                                  </Link>
++                                </li>
++                              );
++                            })}
++                          </ul>
++                        </div>
++                      ))}
++                    </div>
++                  )}
++                </div>
++              );
++            })}
++            <Link
++              to="/pricing"
++              onClick={onClose}
++              className="block border-b border-line-subtle py-4 text-base font-medium text-ink"
++            >
++              Pricing
++            </Link>
++            <div className="mt-6">
++              <LiveDot />
++            </div>
++            <div className="mt-8 flex flex-col gap-3">
++              <Link to="/login" onClick={onClose}>
++                <button
++                  type="button"
++                  className="w-full rounded-md border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-subtle"
++                >
++                  Sign in
++                </button>
++              </Link>
++              <Link to="/signup" onClick={onClose}>
++                <BrushButton className="w-full">Start free</BrushButton>
++              </Link>
++            </div>
++          </div>
++        </motion.div>
++      )}
++    </AnimatePresence>
++  );
++}
+diff --git a/src/pages/Stub.jsx b/src/pages/Stub.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/pages/Stub.jsx
+@@ -0,0 +1,23 @@
++import { Link } from 'react-router-dom';
++
++export default function Stub({ title, part, note }) {
++  return (
++    <div className="flex min-h-screen items-center justify-center bg-canvas px-6">
++      <div className="max-w-md text-center">
++        <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-faint">
++          Route stub
++        </p>
++        <h1 className="mt-3 text-2xl font-semibold text-ink">{title}</h1>
++        <p className="mt-2 text-sm text-ink-muted">
++          {note || `This page lands in Part ${part}.`}
++        </p>
++        <Link
++          to="/"
++          className="mt-6 inline-flex items-center rounded-md border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-subtle"
++        >
++          ← Back home
++        </Link>
++      </div>
++    </div>
++  );
++}
