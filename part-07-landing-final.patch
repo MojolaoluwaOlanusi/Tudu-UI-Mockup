@@ -1,0 +1,975 @@
+diff --git a/src/pages/Landing.jsx b/src/pages/Landing.jsx
+--- a/src/pages/Landing.jsx
++++ b/src/pages/Landing.jsx
+@@ -1,22 +1,26 @@
+ import Navbar from '@/components/landing/Navbar';
+ import Hero from '@/components/landing/Hero';
+ import LogoStrip from '@/components/landing/LogoStrip';
+ import ProblemSection from '@/components/landing/ProblemSection';
+ import BentoGrid from '@/components/landing/BentoGrid';
+ import HowItWorks from '@/components/landing/HowItWorks';
+ import UnderTheHood from '@/components/landing/UnderTheHood';
++import TierGating from '@/components/landing/TierGating';
++import PricingSection from '@/components/landing/PricingSection';
++import Changelog from '@/components/landing/Changelog';
++import SocialProof from '@/components/landing/SocialProof';
++import FinalCTA from '@/components/landing/FinalCTA';
++import Footer from '@/components/landing/Footer';
+ 
+ export default function Landing() {
+   return (
+     <div className="min-h-screen bg-canvas">
+       <Navbar />
+       <main className="pt-14">
+         <Hero />
+         <LogoStrip />
+         <ProblemSection />
+         <BentoGrid />
+         <HowItWorks />
+         <UnderTheHood />
+-        <section className="min-h-[120vh] border-t border-line-subtle flex items-center justify-center">
+-          <p className="text-xs text-ink-faint">
+-            Scroll up to test the sticky-glass navbar.
+-          </p>
+-        </section>
++        <TierGating />
++        <PricingSection />
++        <Changelog />
++        <SocialProof />
++        <FinalCTA />
+       </main>
++      <Footer />
+     </div>
+   );
+ }
+diff --git a/src/components/landing/TierGating.jsx b/src/components/landing/TierGating.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/TierGating.jsx
+@@ -0,0 +1,183 @@
++import { useState } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import {
++  LayoutGrid, ListFilter, ListChecks, Timer, Sparkles, LayoutTemplate,
++  Code2, Clock, BarChart3, Wand2, Upload, Github, Webhook, KeyRound,
++  Lock, Building2, Users, FileText,
++} from 'lucide-react';
++import { cn } from '@/lib/utils';
++
++const FEATURES = [
++  { name: 'Boards & Kanban', tier: 'free', desc: 'Drag, WIP, templates', icon: LayoutGrid },
++  { name: 'Lists & filters', tier: 'free', desc: 'Group, sort, saved views', icon: ListFilter },
++  { name: 'Bulk & shortcuts', tier: 'free', desc: 'Multi-select, ⌘K', icon: ListChecks },
++  { name: 'Pomodoro focus', tier: 'free', desc: '25-min sessions', icon: Timer },
++  { name: 'AI breakdown', tier: 'free', desc: 'Split into steps', icon: Sparkles },
++  { name: 'Built-in templates', tier: 'free', desc: 'Sprint, Bug, Content', icon: LayoutTemplate },
++  { name: 'Public API (read)', tier: 'free', desc: 'Personal tokens', icon: Code2 },
++  { name: 'Time tracking', tier: 'pro', desc: 'Manual + running', icon: Clock },
++  { name: 'Team analytics', tier: 'pro', desc: 'Per-member insights', icon: BarChart3 },
++  { name: 'HD AI breakdown', tier: 'pro', desc: '12 steps vs 6', icon: Wand2 },
++  { name: 'Publish templates', tier: 'pro', desc: 'Sell on marketplace', icon: Upload },
++  { name: 'GitHub + Slack', tier: 'pro', desc: 'PR sync, alerts', icon: Github },
++  { name: 'Webhooks + write API', tier: 'pro', desc: 'POST/PATCH/DELETE', icon: Webhook },
++  { name: 'Self-hosting license', tier: 'pro', desc: 'Run on your servers', icon: KeyRound },
++  { name: 'SAML SSO', tier: 'enterprise', desc: 'Okta, Azure, Google', icon: Building2 },
++  { name: 'SCIM provisioning', tier: 'enterprise', desc: 'Auto-sync from IdP', icon: Users },
++  { name: 'Audit export', tier: 'enterprise', desc: 'Compliance logs', icon: FileText },
++];
++
++const TIERS = [
++  { key: 'free', label: 'Free' },
++  { key: 'pro', label: 'Pro' },
++  { key: 'enterprise', label: 'Enterprise' },
++];
++
++const TIER_RANK = { free: 0, pro: 1, enterprise: 2 };
++
++export default function TierGating() {
++  const [selected, setSelected] = useState('free');
++  const selectedRank = TIER_RANK[selected];
++  const unlocked = FEATURES.filter((f) => TIER_RANK[f.tier] <= selectedRank).length;
++  const locked = FEATURES.length - unlocked;
++
++  return (
++    <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
++      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
++        <div className="max-w-2xl">
++          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
++            Tier gating
++          </p>
++          <h2 className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl">
++            Start free. Unlock power when you need it.
++          </h2>
++          <p className="mt-3 text-base leading-relaxed text-ink-muted">
++            Every feature below is real. Switch tiers to see exactly what unlocks.
++          </p>
++        </div>
++        <div className="flex shrink-0 items-center gap-4 text-[11px]">
++          <span className="text-ink-muted">
++            <span className="font-semibold text-ink tabular-nums">{unlocked}</span> unlocked
++          </span>
++          {locked > 0 && (
++            <span className="text-ink-faint">
++              <span className="font-semibold tabular-nums">{locked}</span> locked
++            </span>
++          )}
++        </div>
++      </div>
++
++      <div className="mb-8 inline-flex rounded-lg border border-line bg-surface p-1">
++        {TIERS.map((t) => (
++          <button
++            key={t.key}
++            type="button"
++            onClick={() => setSelected(t.key)}
++            className="relative rounded-md px-4 py-1.5 text-[13px] font-medium transition-colors"
++            aria-pressed={selected === t.key}
++          >
++            {selected === t.key && (
++              <motion.div
++                layoutId="tier-toggle"
++                className="absolute inset-0 rounded-md bg-raised"
++                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
++              />
++            )}
++            <span
++              className={cn(
++                'relative z-10',
++                selected === t.key ? 'text-ink' : 'text-ink-muted'
++              )}
++            >
++              {t.label}
++            </span>
++          </button>
++        ))}
++      </div>
++
++      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
++        {FEATURES.map((f) => {
++          const locked = TIER_RANK[f.tier] > selectedRank;
++          const Icon = f.icon;
++          return (
++            <motion.div
++              key={f.name}
++              animate={{ opacity: locked ? 0.4 : 1, scale: locked ? 0.98 : 1 }}
++              transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
++              className={cn(
++                'relative rounded-lg border p-3.5 transition-colors',
++                locked ? 'border-line-subtle bg-surface/60' : 'border-line bg-surface'
++              )}
++            >
++              <div className="flex items-start justify-between gap-2">
++                <span
++                  className={cn(
++                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
++                    locked ? 'bg-line-subtle text-ink-faint' : 'bg-brand-subtle text-brand'
++                  )}
++                >
++                  <Icon className="h-3.5 w-3.5" />
++                </span>
++                <AnimatePresence initial={false}>
++                  {locked && (
++                    <motion.span
++                      initial={{ opacity: 0, y: -4 }}
++                      animate={{ opacity: 1, y: 0 }}
++                      exit={{ opacity: 0, y: -4 }}
++                      className="flex shrink-0 items-center gap-1 rounded-sm border border-line bg-raised px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-ink-faint"
++                    >
++                      <Lock className="h-2 w-2" />
++                      {f.tier === 'pro' ? 'Pro' : 'Ent'}
++                    </motion.span>
++                  )}
++                </AnimatePresence>
++              </div>
++              <p className="mt-2 text-[12px] font-medium text-ink">{f.name}</p>
++              <p className="mt-0.5 text-[10px] leading-relaxed text-ink-faint">{f.desc}</p>
++            </motion.div>
++          );
++        })}
++      </div>
++    </section>
++  );
++}
+diff --git a/src/components/landing/PricingSection.jsx b/src/components/landing/PricingSection.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/PricingSection.jsx
+@@ -0,0 +1,297 @@
++import { useState, useEffect } from 'react';
++import { createPortal } from 'react-dom';
++import { motion } from 'framer-motion';
++import { Check } from 'lucide-react';
++import { useNavigate } from 'react-router-dom';
++import BrushButton from '@/components/ui/BrushButton';
++import { cn } from '@/lib/utils';
++
++const PRICING_DATA = {
++  free: {
++    name: 'Free',
++    tagline: 'For solo builders getting organized.',
++    ngn: { monthly: 0, yearly: 0 },
++    usd: { monthly: 0, yearly: 0 },
++    features: [
++      'Unlimited boards & tasks',
++      'AI breakdown (100 / mo)',
++      'Pomodoro & focus stats',
++      'Public API (read)',
++      'Built-in templates',
++    ],
++    cta: 'Start free',
++  },
++  pro: {
++    name: 'Pro',
++    tagline: 'For freelancers and small teams.',
++    ngn: { monthly: 7500, yearly: 75000 },
++    usd: { monthly: 5, yearly: 50 },
++    features: [
++      'Everything in Free',
++      'Time tracking & team analytics',
++      'HD AI breakdown (12 steps)',
++      'GitHub + Slack integrations',
++      'Webhooks + public write API',
++      'Publish templates & sell',
++      'Self-hosting license',
++    ],
++    cta: 'Upgrade to Pro',
++    highlight: true,
++  },
++  enterprise: {
++    name: 'Enterprise',
++    tagline: 'For teams 20+ with compliance needs.',
++    comingSoon: true,
++    features: [
++      'Everything in Pro',
++      'SAML SSO (Okta, Azure)',
++      'SCIM provisioning',
++      'Compliance audit export',
++      'White-label branding',
++      'On-prem deployment',
++      'Dedicated support & SLA',
++    ],
++    cta: 'Contact sales',
++  },
++};
++
++function PaystackModal({ plan, amount, onClose }) {
++  const [step, setStep] = useState('form');
++
++  useEffect(() => {
++    if (step !== 'processing') return;
++    const t = setTimeout(() => setStep('success'), 1500);
++    return () => clearTimeout(t);
++  }, [step]);
++
++  useEffect(() => {
++    if (step !== 'success') return;
++    const t = setTimeout(onClose, 3000);
++    return () => clearTimeout(t);
++  }, [step, onClose]);
++
++  const content = (
++    <div
++      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
++      onClick={onClose}
++      role="presentation"
++    >
++      <motion.div
++        initial={{ opacity: 0, scale: 0.96, y: 8 }}
++        animate={{ opacity: 1, scale: 1, y: 0 }}
++        transition={{ duration: 0.2 }}
++        onClick={(e) => e.stopPropagation()}
++        className="w-full max-w-sm overflow-hidden rounded-lg bg-white text-[#1a1a1a] shadow-2xl"
++        role="dialog"
++        aria-modal="true"
++        aria-label="Paystack checkout"
++      >
++        <div className="flex items-center justify-between bg-[#0BA4DB] px-4 py-3 text-white">
++          <span className="text-[15px] font-semibold tracking-tight">Paystack</span>
++          <span className="rounded-sm bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
++            Test mode
++          </span>
++        </div>
++
++        {step === 'form' && (
++          <div className="p-5">
++            <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">Tudu</p>
++            <p className="mt-1 text-2xl font-semibold tabular-nums">
++              ₦{amount.toLocaleString()}
++            </p>
++            <p className="mt-1 text-xs text-gray-500">
++              Billed {plan === 'monthly' ? 'monthly' : 'yearly'}
++            </p>
++
++            <div className="mt-5 space-y-3">
++              <input
++                type="email"
++                defaultValue="demo@tudu.app"
++                placeholder="Email"
++                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-[#0BA4DB] focus:outline-none"
++              />
++              <input
++                type="text"
++                defaultValue="4084 0840 8408 4081"
++                placeholder="Card number"
++                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-[#0BA4DB] focus:outline-none"
++              />
++              <div className="grid grid-cols-2 gap-3">
++                <input
++                  type="text"
++                  defaultValue="08 / 28"
++                  placeholder="MM / YY"
++                  className="rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-[#0BA4DB] focus:outline-none"
++                />
++                <input
++                  type="text"
++                  defaultValue="408"
++                  placeholder="CVV"
++                  className="rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-[#0BA4DB] focus:outline-none"
++                />
++              </div>
++            </div>
++
++            <button
++              type="button"
++              onClick={() => setStep('processing')}
++              className="mt-5 w-full rounded-md bg-[#0BA4DB] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0993c7]"
++            >
++              Pay ₦{amount.toLocaleString()}
++            </button>
++            <p className="mt-3 text-center text-[10px] text-gray-400">
++              Secured by Paystack · Demo only, no charge
++            </p>
++          </div>
++        )}
++
++        {step === 'processing' && (
++          <div className="flex flex-col items-center justify-center p-10">
++            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0BA4DB] border-t-transparent" />
++            <p className="mt-4 text-sm text-gray-600">Processing payment…</p>
++          </div>
++        )}
++
++        {step === 'success' && (
++          <div className="flex flex-col items-center justify-center p-10">
++            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
++              <Check className="h-6 w-6 text-green-600" strokeWidth={3} />
++            </div>
++            <p className="mt-4 text-sm font-semibold text-gray-900">Payment successful</p>
++            <p className="mt-1 text-xs text-gray-500">Welcome to Pro · demo only</p>
++          </div>
++        )}
++      </motion.div>
++    </div>
++  );
++
++  return createPortal(content, document.body);
++}
++
++export default function PricingSection() {
++  const [yearly, setYearly] = useState(false);
++  const [currency, setCurrency] = useState('NGN');
++  const [paystack, setPaystack] = useState(null);
++  const navigate = useNavigate();
++
++  const getPrice = (key) => {
++    const d = PRICING_DATA[key];
++    if (!d.ngn) return null;
++    return {
++      value: currency === 'NGN' ? d.ngn[yearly ? 'yearly' : 'monthly'] : d.usd[yearly ? 'yearly' : 'monthly'],
++      symbol: currency === 'NGN' ? '₦' : '$',
++    };
++  };
++
++  return (
++    <section id="pricing" className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
++      <div className="mb-10 max-w-2xl">
++        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
++          Pricing
++        </p>
++        <h2 className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl">
++          Simple pricing. Real limits.
++        </h2>
++        <p className="mt-3 text-base leading-relaxed text-ink-muted">
++          Free forever for personal use. Upgrade when you need teammates,
++          integrations, or volume.
++        </p>
++      </div>
++
++      <div className="mb-8 flex flex-wrap items-center gap-3">
++        <div className="inline-flex rounded-lg border border-line bg-surface p-1">
++          {[
++            { key: false, label: 'Monthly' },
++            { key: true, label: 'Yearly', save: true },
++          ].map((opt) => (
++            <button
++              key={String(opt.key)}
++              type="button"
++              onClick={() => setYearly(opt.key)}
++              className={cn(
++                'relative rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors',
++                yearly === opt.key ? 'text-ink' : 'text-ink-muted'
++              )}
++            >
++              {yearly === opt.key && (
++                <motion.div
++                  layoutId="yearly-toggle"
++                  className="absolute inset-0 rounded-md bg-raised"
++                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
++                />
++              )}
++              <span className="relative z-10">{opt.label}</span>
++              {opt.save && (
++                <span className="relative z-10 ml-1.5 rounded-sm bg-brand/15 px-1 text-[9px] font-semibold uppercase tracking-wider text-brand">
++                  Save 2mo
++                </span>
++              )}
++            </button>
++          ))}
++        </div>
++
++        <div className="inline-flex rounded-lg border border-line bg-surface p-1">
++          {['NGN', 'USD'].map((c) => (
++            <button
++              key={c}
++              type="button"
++              onClick={() => setCurrency(c)}
++              className={cn(
++                'relative rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors',
++                currency === c ? 'text-ink' : 'text-ink-muted'
++              )}
++            >
++              {currency === c && (
++                <motion.div
++                  layoutId="currency-toggle"
++                  className="absolute inset-0 rounded-md bg-raised"
++                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
++                />
++              )}
++              <span className="relative z-10">{c}</span>
++            </button>
++          ))}
++        </div>
++      </div>
++
++      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
++        {['free', 'pro', 'enterprise'].map((key) => {
++          const data = PRICING_DATA[key];
++          const price = getPrice(key);
++          const highlight = data.highlight;
++          return (
++            <div
++              key={key}
++              className={cn(
++                'relative flex flex-col rounded-xl border p-6 transition-colors',
++                highlight
++                  ? 'border-brand/60 bg-brand-subtle/20 ring-1 ring-brand/30'
++                  : 'border-line bg-surface',
++                data.comingSoon && 'opacity-60'
++              )}
++            >
++              {highlight && (
++                <span className="absolute -top-2.5 left-4 rounded-sm bg-brand px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-inverse">
++                  Most popular
++                </span>
++              )}
++              {data.comingSoon && (
++                <span className="absolute -top-2.5 left-4 rounded-sm bg-line px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
++                  Coming soon
++                </span>
++              )}
++
++              <div className="mb-4">
++                <h3 className="text-lg font-semibold text-ink">{data.name}</h3>
++                <p className="mt-1 text-xs text-ink-muted">{data.tagline}</p>
++              </div>
++
++              <div className="mb-5 min-h-[70px]">
++                {price ? (
++                  <>
++                    <motion.p
++                      key={`${currency}-${yearly}`}
++                      initial={{ opacity: 0, y: 6 }}
++                      animate={{ opacity: 1, y: 0 }}
++                      transition={{ duration: 0.2 }}
++                      className="text-4xl font-semibold text-ink tabular-nums"
++                    >
++                      {price.symbol}{price.value.toLocaleString()}
++                      <span className="ml-1 text-sm font-normal text-ink-muted">
++                        /{yearly ? 'year' : 'month'}
++                      </span>
++                    </motion.p>
++                    {yearly && key === 'pro' && (
++                      <p className="mt-1 text-[11px] text-ink-faint">
++                        ≈ {price.symbol}{Math.round(price.value / 12).toLocaleString()}/mo
++                      </p>
++                    )}
++                    {key === 'pro' && (
++                      <p className="mt-1 text-[10px] text-ink-faint">
++                        Charged ₦{(yearly ? 75000 : 7500).toLocaleString()} NGN
++                      </p>
++                    )}
++                  </>
++                ) : (
++                  <p className="text-3xl font-semibold text-ink">Custom</p>
++                )}
++              </div>
++
++              <ul className="mb-6 flex-1 space-y-2">
++                {data.features.map((f) => (
++                  <li key={f} className="flex items-start gap-2 text-[12px]">
++                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" strokeWidth={2.5} />
++                    <span className="text-ink-muted">{f}</span>
++                  </li>
++                ))}
++              </ul>
++
++              {key === 'free' && (
++                <button
++                  type="button"
++                  onClick={() => navigate('/signup')}
++                  className="w-full rounded-md border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-subtle"
++                >
++                  {data.cta}
++                </button>
++              )}
++              {key === 'pro' && (
++                <BrushButton
++                  onClick={() =>
++                    setPaystack({
++                      plan: yearly ? 'yearly' : 'monthly',
++                      amount: yearly ? 75000 : 7500,
++                    })
++                  }
++                  className="w-full"
++                >
++                  {data.cta}
++                </BrushButton>
++              )}
++              {key === 'enterprise' && (
++                <button
++                  type="button"
++                  disabled
++                  className="w-full cursor-not-allowed rounded-md border border-line px-4 py-2 text-sm font-medium text-ink-faint"
++                >
++                  {data.cta}
++                </button>
++              )}
++            </div>
++          );
++        })}
++      </div>
++
++      {paystack && (
++        <PaystackModal
++          plan={paystack.plan}
++          amount={paystack.amount}
++          onClose={() => setPaystack(null)}
++        />
++      )}
++    </section>
++  );
++}
+diff --git a/src/components/landing/Changelog.jsx b/src/components/landing/Changelog.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/Changelog.jsx
+@@ -0,0 +1,108 @@
++import { motion } from 'framer-motion';
++import { ArrowRight } from 'lucide-react';
++import { Link } from 'react-router-dom';
++
++const ENTRIES = [
++  {
++    version: 'v1.6',
++    date: 'Oct 2025',
++    title: 'Command palette, power filters, keyboard shortcuts',
++    excerpt:
++      'Press ⌘K to jump anywhere. Filter with @me, #work, due:week. Master vim-style J/K without a mouse.',
++  },
++  {
++    version: 'v1.5',
++    date: 'Sep 2025',
++    title: 'Time tracking and team analytics',
++    excerpt:
++      'Log billable hours against any task. See per-member completion rates, overdue counts, and burndown.',
++  },
++  {
++    version: 'v1.4',
++    date: 'Aug 2025',
++    title: 'GitHub + Slack, live',
++    excerpt:
++      'PRs move cards automatically. Assignments ping Slack channels. Every event HMAC-verified.',
++  },
++];
++
++export default function Changelog() {
++  return (
++    <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
++      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
++        <div>
++          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
++            Changelog
++          </p>
++          <h2 className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl">
++            Shipping every week
++          </h2>
++        </div>
++        <Link
++          to="/changelog"
++          className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] font-medium text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
++        >
++          View all <ArrowRight className="h-3 w-3" />
++        </Link>
++      </div>
++
++      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
++        {ENTRIES.map((entry, i) => (
++          <Link key={entry.version} to="/changelog" className="block">
++            <motion.div
++              initial={{ opacity: 0, y: 16 }}
++              whileInView={{ opacity: 1, y: 0 }}
++              viewport={{ once: true, margin: '-80px' }}
++              transition={{ duration: 0.5, delay: i * 0.08 }}
++              className="group h-full rounded-lg border border-line bg-surface p-5 transition-colors hover:border-line-strong"
++            >
++              <div className="mb-3 flex items-center gap-2">
++                <span className="rounded-sm bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
++                  {entry.version}
++                </span>
++                <span className="text-[11px] text-ink-faint">{entry.date}</span>
++              </div>
++              <h3 className="mb-2 text-sm font-semibold text-ink transition-colors group-hover:text-brand">
++                {entry.title}
++              </h3>
++              <p className="text-[12px] leading-relaxed text-ink-muted">
++                {entry.excerpt}
++              </p>
++              <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-ink-muted transition-colors group-hover:text-brand">
++                Read more
++                <ArrowRight className="h-3 w-3" />
++              </div>
++            </motion.div>
++          </Link>
++        ))}
++      </div>
++    </section>
++  );
++}
+diff --git a/src/components/landing/SocialProof.jsx b/src/components/landing/SocialProof.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/SocialProof.jsx
+@@ -0,0 +1,97 @@
++import { motion } from 'framer-motion';
++
++const TESTIMONIALS = [
++  {
++    quote:
++      "We ditched Trello in a weekend. Tudu's keyboard shortcuts alone paid for the Pro plan.",
++    name: 'Amaka O.',
++    role: 'Engineering lead, Kuda',
++    initials: 'AO',
++  },
++  {
++    quote:
++      'The AI breakdown is stupidly useful. It turns "Plan launch" into a checklist I can actually work through.',
++    name: 'Tunde A.',
++    role: 'Founder, Mono',
++    initials: 'TA',
++  },
++  {
++    quote:
++      "The only Kanban I've seen that works offline on mobile. My team in Lagos never has to worry about a dropped connection.",
++    name: 'Chioma E.',
++    role: 'Product, Flutterwave',
++    initials: 'CE',
++  },
++];
++
++const METRICS = [
++  { value: '500+', label: 'Teams building' },
++  { value: '12,000+', label: 'Tasks shipped' },
++  { value: '₦45k', label: 'Paid to publishers' },
++];
++
++export default function SocialProof() {
++  return (
++    <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
++      <div className="mb-12 text-center">
++        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
++          Social proof
++        </p>
++        <h2 className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl">
++          Loved by builders who ship
++        </h2>
++      </div>
++
++      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
++        {TESTIMONIALS.map((t, i) => (
++          <motion.div
++            key={t.name}
++            initial={{ opacity: 0, y: 16 }}
++            whileInView={{ opacity: 1, y: 0 }}
++            viewport={{ once: true, margin: '-80px' }}
++            transition={{ duration: 0.5, delay: i * 0.1 }}
++            className="rounded-lg border border-line bg-surface p-5"
++          >
++            <p className="text-[14px] leading-relaxed text-ink">
++              &ldquo;{t.quote}&rdquo;
++            </p>
++            <div className="mt-4 flex items-center gap-2.5">
++              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-ink-inverse">
++                {t.initials}
++              </span>
++              <div className="min-w-0">
++                <p className="text-[12px] font-medium text-ink">{t.name}</p>
++                <p className="truncate text-[11px] text-ink-faint">{t.role}</p>
++              </div>
++            </div>
++          </motion.div>
++        ))}
++      </div>
++
++      <motion.div
++        initial={{ opacity: 0, y: 16 }}
++        whileInView={{ opacity: 1, y: 0 }}
++        viewport={{ once: true, margin: '-80px' }}
++        transition={{ duration: 0.5, delay: 0.3 }}
++        className="mt-12 grid grid-cols-3 gap-6 border-t border-line-subtle pt-10 text-center"
++      >
++        {METRICS.map((m) => (
++          <div key={m.label}>
++            <p className="text-2xl font-semibold text-ink sm:text-3xl">{m.value}</p>
++            <p className="mt-1 text-[11px] uppercase tracking-wider text-ink-faint">
++              {m.label}
++            </p>
++          </div>
++        ))}
++      </motion.div>
++    </section>
++  );
++}
+diff --git a/src/components/landing/FinalCTA.jsx b/src/components/landing/FinalCTA.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/FinalCTA.jsx
+@@ -0,0 +1,54 @@
++import { useNavigate } from 'react-router-dom';
++import { motion } from 'framer-motion';
++import { ArrowRight } from 'lucide-react';
++import BrushButton from '@/components/ui/BrushButton';
++
++export default function FinalCTA() {
++  const navigate = useNavigate();
++
++  return (
++    <section className="mx-auto max-w-3xl px-6 py-24 text-center lg:py-32">
++      <motion.h2
++        initial={{ opacity: 0, y: 16 }}
++        whileInView={{ opacity: 1, y: 0 }}
++        viewport={{ once: true, margin: '-100px' }}
++        transition={{ duration: 0.6 }}
++        className="text-balance text-4xl font-semibold leading-tight text-ink sm:text-5xl"
++      >
++        Your board should work as fast as you do.
++      </motion.h2>
++      <motion.p
++        initial={{ opacity: 0, y: 16 }}
++        whileInView={{ opacity: 1, y: 0 }}
++        viewport={{ once: true, margin: '-100px' }}
++        transition={{ duration: 0.6, delay: 0.1 }}
++        className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-muted"
++      >
++        Join 500+ builders who switched this month. Migrate from Trello in 1 click.
++      </motion.p>
++      <motion.div
++        initial={{ opacity: 0, y: 16 }}
++        whileInView={{ opacity: 1, y: 0 }}
++        viewport={{ once: true, margin: '-100px' }}
++        transition={{ duration: 0.6, delay: 0.2 }}
++        className="mt-8"
++      >
++        <BrushButton
++          onClick={() => navigate('/signup')}
++          className="h-12 px-6 text-base"
++        >
++          Start for free — takes 30 seconds
++          <ArrowRight className="ml-1 h-4 w-4" />
++        </BrushButton>
++      </motion.div>
++      <motion.p
++        initial={{ opacity: 0 }}
++        whileInView={{ opacity: 1 }}
++        viewport={{ once: true }}
++        transition={{ duration: 0.6, delay: 0.3 }}
++        className="mt-4 text-xs text-ink-faint"
++      >
++        No credit card required.
++      </motion.p>
++    </section>
++  );
++}
+diff --git a/src/components/landing/Footer.jsx b/src/components/landing/Footer.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/Footer.jsx
+@@ -0,0 +1,205 @@
++import { Link } from 'react-router-dom';
++
++const SECTIONS = [
++  {
++    heading: 'Product',
++    links: [
++      { label: 'Boards & Kanban', to: '/docs/boards' },
++      { label: 'Lists & filters', to: '/docs/lists' },
++      { label: 'AI breakdown', to: '/docs/ai' },
++      { label: 'Templates', to: '/docs/templates' },
++    ],
++  },
++  {
++    heading: 'Solutions',
++    links: [
++      { label: 'Freelancers', to: '/solutions/freelancers' },
++      { label: 'Small teams', to: '/solutions/teams' },
++      { label: 'Enterprise', to: '/solutions/enterprise' },
++    ],
++  },
++  {
++    heading: 'Developers',
++    links: [
++      { label: 'Documentation', to: '/docs' },
++      { label: 'Public API', to: '/docs/api' },
++      { label: 'Webhooks', to: '/webhooks' },
++      { label: 'Changelog', to: '/changelog' },
++    ],
++  },
++  {
++    heading: 'Resources',
++    links: [
++      { label: 'Blog', to: '/blog' },
++      { label: 'Help center', to: '/help' },
++      { label: 'Community', to: '/community' },
++      { label: 'Status', to: '/status' },
++    ],
++  },
++  {
++    heading: 'Legal',
++    links: [
++      { label: 'Privacy', to: '/privacy' },
++      { label: 'Terms', to: '/terms' },
++      { label: 'Contact', to: '/contact' },
++    ],
++  },
++];
++
++export default function Footer() {
++  return (
++    <footer className="relative overflow-visible">
++      {/* Giant wordmark — half above the glass panel, half behind it.
++          The glass panel's backdrop-blur redraws the bottom half of the
++          wordmark as a soft ghost, so the green check "glows" through. */}
++      <div
++        aria-hidden="true"
++        className="pointer-events-none absolute inset-x-0 top-0 z-0 flex -translate-y-1/2 justify-center"
++      >
++        <div className="relative flex items-baseline gap-2 sm:gap-3">
++          {/* Glow behind the check */}
++          <div
++            className="absolute left-[58%] top-[40%] h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 md:h-40 md:w-40"
++            style={{
++              background:
++                'radial-gradient(circle, rgba(34,197,94,0.55) 0%, transparent 65%)',
++              filter: 'blur(24px)',
++            }}
++          />
++          <span className="relative font-brand text-[56px] leading-none text-ink sm:text-[80px] md:text-[120px] lg:text-[140px]">
++            tudu
++          </span>
++          <svg
++            className="relative h-[38px] w-[38px] shrink-0 -translate-y-1 sm:h-[54px] sm:w-[54px] md:h-[80px] md:w-[80px]"
++            viewBox="0 0 24 24"
++            fill="none"
++          >
++            <circle cx="12" cy="12" r="11" fill="var(--accent)" />
++            <path
++              d="M6.5 12.5l3.5 3.5 7-7"
++              stroke="white"
++              strokeWidth="2.5"
++              strokeLinecap="round"
++              strokeLinejoin="round"
++            />
++          </svg>
++        </div>
++      </div>
++
++      {/* Glass panel — starts at y=0 of footer, blurs the bottom half
++          of the wordmark via backdrop-filter. */}
++      <div className="relative z-10 border-t border-line-subtle bg-canvas/70 backdrop-blur-2xl backdrop-saturate-150">
++        <div className="mx-auto max-w-7xl px-6 pb-10 pt-32 sm:pt-40 md:pt-48">
++          {/* Mobile: 2x3 grid */}
++          <div className="grid grid-cols-2 gap-8 md:hidden">
++            {SECTIONS.map((sec) => (
++              <div key={sec.heading}>
++                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
++                  {sec.heading}
++                </p>
++                <ul className="space-y-2">
++                  {sec.links.map((l) => (
++                    <li key={l.label}>
++                      <Link
++                        to={l.to}
++                        className="text-[12px] text-ink-muted transition-colors hover:text-ink"
++                      >
++                        {l.label}
++                      </Link>
++                    </li>
++                  ))}
++                </ul>
++              </div>
++            ))}
++          </div>
++
++          {/* Desktop: brand + 5 sections */}
++          <div className="hidden gap-8 md:grid md:grid-cols-6">
++            <div className="col-span-1">
++              <p className="text-[13px] font-semibold text-ink">Tudu</p>
++              <p className="mt-2 max-w-[180px] text-[11px] leading-relaxed text-ink-muted">
++                Where simple boards become serious work.
++              </p>
++            </div>
++            {SECTIONS.map((sec) => (
++              <div key={sec.heading}>
++                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
++                  {sec.heading}
++                </p>
++                <ul className="space-y-2">
++                  {sec.links.map((l) => (
++                    <li key={l.label}>
++                      <Link
++                        to={l.to}
++                        className="text-[12px] text-ink-muted transition-colors hover:text-ink"
++                      >
++                        {l.label}
++                      </Link>
++                    </li>
++                  ))}
++                </ul>
++              </div>
++            ))}
++          </div>
++
++          <div className="mt-12 flex flex-col gap-4 border-t border-line-subtle pt-6 text-[11px] text-ink-faint md:flex-row md:items-center md:justify-between">
++            <p>© {new Date().getFullYear()} Tudu. All rights reserved.</p>
++            <p className="text-center md:text-right">
++              Made with <span className="text-brand">💖</span> in Ibadan.
++              <span className="hidden sm:inline">
++                {' '}
++                No Trello or Jira were harmed — just built what they didn&apos;t.
++              </span>
++            </p>
++          </div>
++        </div>
++      </div>
++    </footer>
++  );
++}

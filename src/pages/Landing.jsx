@@ -5,6 +5,12 @@ import ProblemSection from '@/components/landing/ProblemSection';
 import BentoGrid from '@/components/landing/BentoGrid';
 import HowItWorks from '@/components/landing/HowItWorks';
 import UnderTheHood from '@/components/landing/UnderTheHood';
+import TierGating from '@/components/landing/TierGating';
+import PricingSection from '@/components/landing/PricingSection';
+import Changelog from '@/components/landing/Changelog';
+import SocialProof from '@/components/landing/SocialProof';
+import FinalCTA from '@/components/landing/FinalCTA';
+import Footer from '@/components/landing/Footer';
 
 export default function Landing() {
   return (
@@ -17,12 +23,13 @@ export default function Landing() {
         <BentoGrid />
         <HowItWorks />
         <UnderTheHood />
-        <section className="min-h-[120vh] border-t border-line-subtle flex items-center justify-center">
-          <p className="text-xs text-ink-faint">
-            Scroll up to test the sticky-glass navbar.
-          </p>
-        </section>
+        <TierGating />
+        <PricingSection />
+        <Changelog />
+        <SocialProof />
+        <FinalCTA />
       </main>
+      <Footer />
     </div>
   );
 }
