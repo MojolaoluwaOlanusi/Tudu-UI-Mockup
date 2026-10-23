@@ -1,0 +1,1508 @@
+diff --git a/src/pages/Landing.jsx b/src/pages/Landing.jsx
+--- a/src/pages/Landing.jsx
++++ b/src/pages/Landing.jsx
+@@ -1,18 +1,20 @@
+ import Navbar from '@/components/landing/Navbar';
+ import Hero from '@/components/landing/Hero';
+ import LogoStrip from '@/components/landing/LogoStrip';
+ import ProblemSection from '@/components/landing/ProblemSection';
++import BentoGrid from '@/components/landing/BentoGrid';
+ 
+ export default function Landing() {
+   return (
+     <div className="min-h-screen bg-canvas">
+       <Navbar />
+       <main className="pt-14">
+         <Hero />
+         <LogoStrip />
+         <ProblemSection />
++        <BentoGrid />
+         <section className="min-h-[120vh] border-t border-line-subtle flex items-center justify-center">
+           <p className="text-xs text-ink-faint">
+             Scroll up to test the sticky-glass navbar.
+           </p>
+         </section>
+       </main>
+     </div>
+   );
+ }
+diff --git a/src/components/landing/bento/shared.jsx b/src/components/landing/bento/shared.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/bento/shared.jsx
+@@ -0,0 +1,55 @@
++import { useRef, useState, useEffect } from 'react';
++import { useInView } from 'framer-motion';
++import { cn } from '@/lib/utils';
++
++export const wait = (ms) => new Promise((r) => setTimeout(r, ms));
++
++export function useTileInView() {
++  const ref = useRef(null);
++  const inView = useInView(ref, { margin: '-80px', once: false });
++  return { ref, inView };
++}
++
++export function useCursorSpotlight(ref) {
++  const [pos, setPos] = useState({ x: 0, y: 0 });
++  const [active, setActive] = useState(false);
++  useEffect(() => {
++    const el = ref.current;
++    if (!el) return;
++    const onMove = (e) => {
++      const r = el.getBoundingClientRect();
++      setPos({ x: e.clientX - r.left, y: e.clientY - r.top });
++    };
++    const on = () => setActive(true);
++    const off = () => setActive(false);
++    el.addEventListener('mousemove', onMove);
++    el.addEventListener('mouseenter', on);
++    el.addEventListener('mouseleave', off);
++    return () => {
++      el.removeEventListener('mousemove', onMove);
++      el.removeEventListener('mouseenter', on);
++      el.removeEventListener('mouseleave', off);
++    };
++  }, [ref]);
++  return { pos, active };
++}
++
++export function TileHeader({ title, icon, badge, hint }) {
++  return (
++    <div className="flex items-start justify-between gap-2">
++      <div className="flex min-w-0 items-center gap-2">
++        {icon && <span className="shrink-0 text-ink-muted">{icon}</span>}
++        <h3 className="truncate text-[13px] font-semibold text-ink">{title}</h3>
++      </div>
++      <div className="flex shrink-0 items-center gap-1.5">
++        {hint && (
++          <span className="rounded-sm border border-line bg-raised px-1.5 py-0.5 font-mono text-[10px] text-ink-muted">
++            {hint}
++          </span>
++        )}
++        {badge && (
++          <span className="rounded-sm bg-brand/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-brand">
++            {badge}
++          </span>
++        )}
++      </div>
++    </div>
++  );
++}
++
++export const Cursor = ({ className }) => (
++  <span className={cn('ml-0.5 inline-block h-3 w-px animate-pulse bg-brand align-middle', className)} />
++);
+diff --git a/src/components/landing/bento/BigTiles.jsx b/src/components/landing/bento/BigTiles.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/bento/BigTiles.jsx
+@@ -0,0 +1,282 @@
++import { useState, useEffect } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import { Sparkles, Clock, Search, Play, Pause, BarChart3 } from 'lucide-react';
++import { TileHeader, useTileInView, useCursorSpotlight, wait, Cursor } from './shared';
++import { cn } from '@/lib/utils';
++
++/* ------------------------------------------------------------------ */
++/* 1. AI breakdown — types "Plan app launch", generates 6 subtasks    */
++/* ------------------------------------------------------------------ */
++
++const PROMPT = 'Plan app launch';
++const SUBTASKS = [
++  { title: 'Draft launch brief', estimate: '2d' },
++  { title: 'Define success metrics', estimate: '1d' },
++  { title: 'Coordinate marketing', estimate: '3d' },
++  { title: 'Prepare press kit', estimate: '2d' },
++  { title: 'Schedule demos', estimate: '1d' },
++  { title: 'Write announcement', estimate: '1d' },
++];
++
++export function AiBreakdownTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const { pos, active } = useCursorSpotlight(ref);
++  const [typed, setTyped] = useState('');
++  const [phase, setPhase] = useState('idle');
++  const [shown, setShown] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setPhase('typing'); setTyped(''); setShown(0);
++        await wait(600); if (cancelled) return;
++        for (let i = 1; i <= PROMPT.length; i++) {
++          if (cancelled) return;
++          setTyped(PROMPT.slice(0, i));
++          await wait(55);
++        }
++        await wait(500); if (cancelled) return;
++        setPhase('generating');
++        await wait(700); if (cancelled) return;
++        setPhase('showing');
++        for (let i = 1; i <= SUBTASKS.length; i++) {
++          if (cancelled) return;
++          setShown(i);
++          await wait(170);
++        }
++        await wait(2800);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      {active && (
++        <div
++          className="pointer-events-none absolute inset-0 opacity-70"
++          style={{ background: `radial-gradient(400px circle at ${pos.x}px ${pos.y}px, var(--accent-subtle), transparent 60%)` }}
++        />
++      )}
++      <div className="relative">
++        <TileHeader title="AI that actually helps" icon={<Sparkles className="h-3.5 w-3.5" />} badge="Pro" />
++
++        <div className="mt-4 flex items-center gap-2 rounded-md border border-line bg-raised px-3 py-2">
++          <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand" />
++          <span className="min-w-0 flex-1 truncate text-[13px] text-ink">
++            {typed}
++            {phase === 'typing' && <Cursor />}
++          </span>
++          <button
++            type="button"
++            tabIndex={-1}
++            className="shrink-0 rounded-sm bg-brand px-2 py-0.5 text-[10px] font-semibold text-ink-inverse"
++          >
++            Break down
++          </button>
++        </div>
++
++        <div className="mt-3 min-h-[170px]">
++          <AnimatePresence mode="wait">
++            {phase === 'generating' && (
++              <motion.p
++                key="loading"
++                initial={{ opacity: 0 }}
++                animate={{ opacity: 1 }}
++                exit={{ opacity: 0 }}
++                className="text-[11px] text-ink-muted"
++              >
++                Breaking into steps<span className="animate-pulse">…</span>
++              </motion.p>
++            )}
++            {phase === 'showing' && (
++              <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-1.5">
++                {SUBTASKS.slice(0, shown).map((task) => (
++                  <motion.div
++                    key={task.title}
++                    initial={{ opacity: 0, x: -8 }}
++                    animate={{ opacity: 1, x: 0 }}
++                    transition={{ duration: 0.2 }}
++                    className="flex items-center gap-2 rounded-md border border-line-subtle bg-raised px-2 py-1.5"
++                  >
++                    <span className="h-3.5 w-3.5 shrink-0 rounded border border-line-strong" />
++                    <span className="min-w-0 flex-1 truncate text-[12px] text-ink">{task.title}</span>
++                    <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-line-subtle px-1.5 py-0.5 text-[10px] text-ink-muted">
++                      <Clock className="h-2.5 w-2.5" />
++                      {task.estimate}
++                    </span>
++                  </motion.div>
++                ))}
++              </motion.div>
++            )}
++          </AnimatePresence>
++        </div>
++
++        <div className="mt-4 flex items-center justify-between border-t border-line-subtle pt-3 text-[11px]">
++          <span className="text-ink-faint">Free · 100 / mo</span>
++          <span className="font-medium text-brand">Pro · 1,200 + HD</span>
++        </div>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 2. Command palette — ⌘K, filter chips, live results                 */
++/* ------------------------------------------------------------------ */
++
++const CMD_FILTER = '@me due:today';
++const CMD_RESULTS = ['Design dashboard', 'Review API spec', 'Ship pricing page'];
++
++export function CommandPaletteTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const { pos, active } = useCursorSpotlight(ref);
++  const [showK, setShowK] = useState(false);
++  const [filter, setFilter] = useState('');
++  const [results, setResults] = useState([]);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setShowK(false); setFilter(''); setResults([]);
++        await wait(500); if (cancelled) return;
++        setShowK(true);
++        await wait(500); if (cancelled) return;
++        for (let i = 1; i <= CMD_FILTER.length; i++) {
++          if (cancelled) return;
++          setFilter(CMD_FILTER.slice(0, i));
++          await wait(55);
++        }
++        await wait(300); if (cancelled) return;
++        for (let i = 0; i < CMD_RESULTS.length; i++) {
++          if (cancelled) return;
++          setResults(CMD_RESULTS.slice(0, i + 1));
++          await wait(200);
++        }
++        await wait(2400);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      {active && (
++        <div
++          className="pointer-events-none absolute inset-0 opacity-70"
++          style={{ background: `radial-gradient(400px circle at ${pos.x}px ${pos.y}px, var(--accent-subtle), transparent 60%)` }}
++        />
++      )}
++      <div className="relative">
++        <TileHeader title="Command everything" icon={<Search className="h-3.5 w-3.5" />} hint="⌘K" />
++
++        <div className="mt-4 space-y-2">
++          <div className="flex items-center gap-2 rounded-md border border-line bg-raised px-3 py-2">
++            <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
++            <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink">
++              {filter}
++              {filter.length > 0 && filter.length < CMD_FILTER.length && <Cursor />}
++            </span>
++            <AnimatePresence>
++              {showK && (
++                <motion.span
++                  initial={{ scale: 0.4, opacity: 0 }}
++                  animate={{ scale: 1, opacity: 1 }}
++                  exit={{ scale: 0.4, opacity: 0 }}
++                  className="shrink-0 rounded border border-line bg-surface px-1.5 py-0.5 font-mono text-[10px] text-ink-muted"
++                >
++                  K
++                </motion.span>
++              )}
++            </AnimatePresence>
++          </div>
++
++          <div className="flex flex-wrap gap-1.5">
++            {['@me', 'due:today'].map((chip, i) => (
++              <motion.span
++                key={chip}
++                initial={{ opacity: 0, y: -4 }}
++                animate={{ opacity: filter.includes(chip.split(' ')[0]) ? 1 : 0.2 }}
++                transition={{ delay: i * 0.08 }}
++                className="rounded-sm border border-brand/30 bg-brand-subtle px-1.5 py-0.5 font-mono text-[10px] text-brand"
++              >
++                {chip}
++              </motion.span>
++            ))}
++          </div>
++        </div>
++
++        <div className="mt-3 min-h-[110px] space-y-1">
++          {results.map((r, i) => (
++            <motion.div
++              key={r}
++              initial={{ opacity: 0, x: -6 }}
++              animate={{ opacity: 1, x: 0 }}
++              transition={{ duration: 0.2 }}
++              className={cn(
++                'flex items-center gap-2 rounded-md px-2 py-1.5 text-[12px]',
++                i === 0 ? 'bg-raised text-ink' : 'text-ink-muted'
++              )}
++            >
++              <span className="h-3.5 w-3.5 shrink-0 rounded-full border border-line-strong" />
++              <span className="min-w-0 flex-1 truncate">{r}</span>
++              <span className="shrink-0 font-mono text-[10px] text-ink-faint">⏎</span>
++            </motion.div>
++          ))}
++        </div>
++
++        <p className="mt-3 border-t border-line-subtle pt-3 text-[10px] text-ink-faint">
++          Power query: <span className="font-mono text-ink-muted">@me #work due:week priority:high</span>
++        </p>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 3. Focus Mode — Pomodoro timer + animated stats                     */
++/* ------------------------------------------------------------------ */
++
++export function FocusModeTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [seconds, setSeconds] = useState(25 * 60);
++  const [statsWidth, setStatsWidth] = useState(20);
++
++  useEffect(() => {
++    if (!inView) return;
++    setSeconds(25 * 60 - 37);
++    const id = setInterval(() => {
++      setSeconds((s) => (s <= 1 ? 25 * 60 : s - 1));
++    }, 1000);
++    return () => clearInterval(id);
++  }, [inView]);
++
++  useEffect(() => {
++    if (!inView) return;
++    let raf;
++    let t0;
++    const step = (t) => {
++      if (!t0) t0 = t;
++      const p = Math.min(1, (t - t0) / 2200);
++      setStatsWidth(20 + p * 60);
++      if (p < 1) raf = requestAnimationFrame(step);
++    };
++    raf = requestAnimationFrame(step);
++    return () => cancelAnimationFrame(raf);
++  }, [inView]);
++
++  const m = Math.floor(seconds / 60);
++  const s = seconds % 60;
++  const label = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
++  const pct = 1 - seconds / (25 * 60);
++  const circ = 2 * Math.PI * 26;
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Focus Mode, built-in" icon={<Play className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 flex items-center gap-4">
++        <div className="relative h-16 w-16 shrink-0">
++          <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90">
++            <circle cx="32" cy="32" r="26" fill="none" stroke="var(--border-subtle)" strokeWidth="4" />
++            <circle
++              cx="32" cy="32" r="26" fill="none"
++              stroke="var(--accent)" strokeWidth="4" strokeLinecap="round"
++              strokeDasharray={circ}
++              strokeDashoffset={circ * (1 - pct)}
++              style={{ transition: 'stroke-dashoffset 1s linear' }}
++            />
++          </svg>
++          <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] font-semibold text-ink">
++            {label}
++          </span>
++        </div>
++        <div className="min-w-0 flex-1">
++          <p className="text-[12px] font-medium text-ink">Design dashboard</p>
++          <p className="mt-0.5 text-[10px] text-ink-faint">Pomodoro · Session 2 of 4</p>
++          <button
++            type="button"
++            tabIndex={-1}
++            className="mt-2 inline-flex items-center gap-1 rounded-sm bg-line-subtle px-2 py-1 text-[10px] font-medium text-ink-muted"
++          >
++            <Pause className="h-2.5 w-2.5" /> Pause
++          </button>
++        </div>
++      </div>
++
++      <div className="mt-4 space-y-2">
++        <div className="flex items-center justify-between text-[10px]">
++          <span className="text-ink-faint">Today</span>
++          <span className="font-medium text-ink">1h 15m</span>
++        </div>
++        <div className="h-1.5 overflow-hidden rounded-full bg-line-subtle">
++          <div
++            className="h-full rounded-full bg-brand transition-[width] duration-1000"
++            style={{ width: `${statsWidth}%` }}
++          />
++        </div>
++        <div className="flex items-center justify-between text-[10px]">
++          <span className="text-ink-faint">Weekly goal</span>
++          <span className="text-ink-muted">{Math.round(statsWidth)}%</span>
++        </div>
++      </div>
++    </motion.div>
++  );
++}
+diff --git a/src/components/landing/bento/MediumTiles.jsx b/src/components/landing/bento/MediumTiles.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/bento/MediumTiles.jsx
+@@ -0,0 +1,332 @@
++import { useState, useEffect } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import { Undo2, WifiOff, CheckCircle2, Palette, Users, Terminal, Layers, Shield } from 'lucide-react';
++import { TileHeader, useTileInView, wait } from './shared';
++import { cn } from '@/lib/utils';
++
++/* ------------------------------------------------------------------ */
++/* 4. Never lose work — delete → undo → offline → synced               */
++/* ------------------------------------------------------------------ */
++
++export function NeverLoseWorkTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [step, setStep] = useState(0); // 0 delete, 1 toast, 2 offline, 3 syncing, 4 synced
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setStep(0); await wait(700); if (cancelled) return;
++        setStep(1); await wait(1600); if (cancelled) return;
++        setStep(2); await wait(1200); if (cancelled) return;
++        setStep(3); await wait(1400); if (cancelled) return;
++        setStep(4); await wait(2000);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Never lose work" icon={<Undo2 className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 min-h-[180px]">
++        <AnimatePresence mode="wait">
++          {step <= 1 && (
++            <motion.div key="task" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -8 }}>
++              <div className={cn('rounded-md border border-line bg-raised px-2.5 py-2 transition-all', step === 1 && 'opacity-40 line-through')}>
++                <p className="text-[12px] text-ink">Delete Q4 board</p>
++              </div>
++            </motion.div>
++          )}
++        </AnimatePresence>
++
++        <AnimatePresence>
++          {step >= 1 && step <= 2 && (
++            <motion.div
++              key="toast"
++              initial={{ opacity: 0, y: 8 }}
++              animate={{ opacity: 1, y: 0 }}
++              exit={{ opacity: 0, y: 8 }}
++              className="mt-3 flex items-center gap-2 rounded-md border border-line bg-surface px-2.5 py-2 shadow-lg"
++            >
++              <Undo2 className="h-3 w-3 shrink-0 text-brand" />
++              <span className="min-w-0 flex-1 truncate text-[11px] text-ink">Deleted "Q4 board"</span>
++              <span className="shrink-0 rounded-sm bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-ink-inverse">Undo</span>
++            </motion.div>
++          )}
++        </AnimatePresence>
++
++        <AnimatePresence>
++          {step >= 2 && (
++            <motion.div
++              key="status"
++              initial={{ opacity: 0, y: 8 }}
++              animate={{ opacity: 1, y: 0 }}
++              className="mt-3 flex items-center gap-2 rounded-md border border-line bg-raised px-2.5 py-2"
++            >
++              {step === 2 && (
++                <>
++                  <WifiOff className="h-3 w-3 shrink-0 text-amber-400" />
++                  <span className="text-[11px] text-ink-muted">Offline — 1 change queued</span>
++                </>
++              )}
++              {step === 3 && (
++                <>
++                  <motion.span
++                    className="h-3 w-3 shrink-0 rounded-full border-2 border-brand border-t-transparent"
++                    animate={{ rotate: 360 }}
++                    transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
++                  />
++                  <span className="text-[11px] text-ink-muted">Syncing…</span>
++                </>
++              )}
++              {step === 4 && (
++                <>
++                  <CheckCircle2 className="h-3 w-3 shrink-0 text-brand" />
++                  <span className="text-[11px] font-medium text-ink">Synced — deleted task restored</span>
++                </>
++              )}
++            </motion.div>
++          )}
++        </AnimatePresence>
++      </div>
++
++      <p className="mt-3 border-t border-line-subtle pt-3 text-[10px] text-ink-faint">
++        Soft delete + offline queue + auto-sync
++      </p>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 5. Boards that fit — color swatches, WIP badge, template chips      */
++/* ------------------------------------------------------------------ */
++
++const COLORS = ['#8B5CF6', '#F5A524', '#22C55E', '#EF4444', '#3B82F6'];
++const TEMPLATES = ['Sprint', 'Bug Fix', 'Content'];
++
++export function BoardsThatFitTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [active, setActive] = useState(0);
++  const [installing, setInstalling] = useState(null);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        for (let i = 0; i < COLORS.length; i++) {
++          if (cancelled) return;
++          setActive(i);
++          await wait(700);
++        }
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        for (const t of TEMPLATES) {
++          if (cancelled) return;
++          setInstalling(t);
++          await wait(1000);
++        }
++        setInstalling(null);
++        await wait(600);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Boards that fit you" icon={<Palette className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 flex items-center gap-1.5">
++        {COLORS.map((c, i) => (
++          <motion.span
++            key={c}
++            className="h-4 w-4 rounded-full"
++            style={{ backgroundColor: c }}
++            animate={{ scale: active === i ? 1.35 : 1, opacity: active === i ? 1 : 0.5 }}
++            transition={{ duration: 0.25 }}
++          />
++        ))}
++      </div>
++
++      <div className="mt-4 rounded-md border border-line bg-raised p-2">
++        <div className="flex items-center justify-between">
++          <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Doing</span>
++          <span className="rounded-sm bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">3/3</span>
++        </div>
++        <div className="mt-2 space-y-1">
++          {['Card one', 'Card two', 'Card three'].map((t) => (
++            <div key={t} className="rounded-sm border border-line-subtle bg-surface px-2 py-1 text-[11px] text-ink">{t}</div>
++          ))}
++        </div>
++      </div>
++
++      <div className="mt-3">
++        <p className="mb-1.5 text-[10px] text-ink-faint">Templates</p>
++        <div className="flex flex-wrap gap-1.5">
++          {TEMPLATES.map((t) => (
++            <span
++              key={t}
++              className={cn(
++                'rounded-sm border px-1.5 py-0.5 text-[10px] font-medium transition-colors',
++                installing === t ? 'border-brand bg-brand text-ink-inverse' : 'border-line bg-raised text-ink-muted'
++              )}
++            >
++              {installing === t ? '✓ ' : ''}{t}
++            </span>
++          ))}
++        </div>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 6. Keyboard-first — n / b keys scale in, bulk bar slides up         */
++/* ------------------------------------------------------------------ */
++
++export function KeyboardFirstTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [phase, setPhase] = useState('idle'); // idle | n | b | bar
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setPhase('idle'); await wait(600); if (cancelled) return;
++        setPhase('n'); await wait(1400); if (cancelled) return;
++        setPhase('b'); await wait(900); if (cancelled) return;
++        setPhase('bar'); await wait(2400);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Keyboard-first" icon={<Terminal className="h-3.5 w-3.5" />} hint="n · b · ⌘K" />
++
++      <div className="mt-4 flex flex-col gap-3">
++        <div className="flex items-center gap-3">
++          <motion.span
++            animate={{ scale: phase === 'n' ? 1.15 : 1 }}
++            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
++            className={cn(
++              'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border font-mono text-sm font-semibold transition-colors',
++              phase === 'n' ? 'border-brand bg-brand text-ink-inverse' : 'border-line bg-raised text-ink-muted'
++            )}
++          >
++            n
++          </motion.span>
++          <span className="text-[11px] text-ink-muted">New task</span>
++          <AnimatePresence>
++            {phase === 'n' && (
++              <motion.span
++                initial={{ opacity: 0, x: -6 }}
++                animate={{ opacity: 1, x: 0 }}
++                exit={{ opacity: 0 }}
++                className="ml-auto rounded-sm border border-line bg-raised px-2 py-0.5 text-[10px] text-ink-muted"
++              >
++                composer opened
++              </motion.span>
++            )}
++          </AnimatePresence>
++        </div>
++
++        <div className="flex items-center gap-3">
++          <motion.span
++            animate={{ scale: phase === 'b' || phase === 'bar' ? 1.15 : 1 }}
++            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
++            className={cn(
++              'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border font-mono text-sm font-semibold transition-colors',
++              phase === 'b' || phase === 'bar' ? 'border-brand bg-brand text-ink-inverse' : 'border-line bg-raised text-ink-muted'
++            )}
++          >
++            b
++          </motion.span>
++          <span className="text-[11px] text-ink-muted">Bulk select</span>
++        </div>
++
++        <div className="relative h-9">
++          <AnimatePresence>
++            {phase === 'bar' && (
++              <motion.div
++                initial={{ y: 20, opacity: 0 }}
++                animate={{ y: 0, opacity: 1 }}
++                exit={{ y: 20, opacity: 0 }}
++                transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
++                className="absolute inset-x-0 flex items-center gap-2 rounded-md border border-line bg-raised px-2 py-1.5 text-[10px]"
++              >
++                <span className="font-medium text-ink">3 selected</span>
++                <span className="ml-auto rounded-sm border border-line bg-surface px-1.5 py-0.5 text-ink-muted">Done</span>
++                <span className="rounded-sm border border-line bg-surface px-1.5 py-0.5 text-ink-muted">Delete</span>
++              </motion.div>
++            )}
++          </AnimatePresence>
++        </div>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 7. Workspaces — tree, members, roles                                */
++/* ------------------------------------------------------------------ */
++
++export function WorkspacesTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [revealed, setRevealed] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setRevealed(0);
++        for (let i = 1; i <= 3; i++) {
++          if (cancelled) return;
++          setRevealed(i);
++          await wait(350);
++        }
++        await wait(2000);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Workspaces & roles" icon={<Users className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 rounded-md border border-line bg-raised p-2.5">
++        <div className="flex items-center justify-between">
++          <span className="text-[11px] font-semibold text-ink">Sprint 12</span>
++          <span className="rounded-sm bg-brand/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-brand">Admin</span>
++        </div>
++        <div className="mt-2 flex -space-x-1.5">
++          {['A', 'B', 'C'].map((i, idx) => (
++            <motion.span
++              key={i}
++              animate={{ opacity: idx < revealed ? 1 : 0.2, scale: idx < revealed ? 1 : 0.9 }}
++              transition={{ duration: 0.3 }}
++              className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-brand text-[10px] font-semibold text-ink-inverse"
++            >
++              {i}
++            </motion.span>
++          ))}
++          <span className="ml-2 flex h-6 items-center text-[10px] text-ink-faint">3 members</span>
++        </div>
++      </div>
++
++      <div className="mt-3 space-y-1">
++        <p className="text-[10px] uppercase tracking-wider text-ink-faint">Shared lists</p>
++        <div className="flex items-center justify-between rounded-sm border border-line-subtle bg-raised px-2 py-1 text-[11px]">
++          <span className="text-ink">Design backlog</span>
++          <span className="text-ink-faint">edit</span>
++        </div>
++        <div className="flex items-center justify-between rounded-sm border border-line-subtle bg-raised px-2 py-1 text-[11px]">
++          <span className="text-ink">Q4 roadmap</span>
++          <span className="text-ink-faint">view</span>
++        </div>
++      </div>
++    </motion.div>
++  );
++}
+diff --git a/src/components/landing/bento/SmallTiles.jsx b/src/components/landing/bento/SmallTiles.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/bento/SmallTiles.jsx
+@@ -0,0 +1,364 @@
++import { useState, useEffect } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import { Download, LayoutTemplate, KeyRound, Bell, Package, Github, BarChart3 } from 'lucide-react';
++import { TileHeader, useTileInView, wait } from './shared';
++import { cn } from '@/lib/utils';
++
++/* ------------------------------------------------------------------ */
++/* 8. PWA — install prompt slides up                                   */
++/* ------------------------------------------------------------------ */
++
++export function PwaTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [show, setShow] = useState(false);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setShow(false);
++        await wait(500); if (cancelled) return;
++        setShow(true);
++        await wait(3000);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="PWA install" icon={<Download className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 flex min-h-[110px] items-center justify-center">
++        <AnimatePresence>
++          {show && (
++            <motion.div
++              initial={{ y: 20, opacity: 0 }}
++              animate={{ y: 0, opacity: 1 }}
++              exit={{ y: 20, opacity: 0 }}
++              transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
++              className="w-full rounded-md border border-line bg-raised p-2 shadow-lg"
++            >
++              <div className="flex items-center gap-2">
++                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand text-[10px] font-semibold text-ink-inverse">T</span>
++                <div className="min-w-0 flex-1">
++                  <p className="truncate text-[11px] font-medium text-ink">Install Tudu</p>
++                  <p className="truncate text-[9px] text-ink-faint">Works offline</p>
++                </div>
++                <span className="shrink-0 rounded-sm bg-brand px-1.5 py-0.5 text-[9px] font-semibold text-ink-inverse">Install</span>
++              </div>
++            </motion.div>
++          )}
++        </AnimatePresence>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 9. Templates — three template chips cycling                         */
++/* ------------------------------------------------------------------ */
++
++const TPL_ITEMS = [
++  { name: 'Sprint', hint: 'Backlog → Done' },
++  { name: 'Bug Fix', hint: 'Triage → QA' },
++  { name: 'Content', hint: 'Idea → Published' },
++];
++
++export function TemplatesTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [active, setActive] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    const id = setInterval(() => setActive((a) => (a + 1) % TPL_ITEMS.length), 1600);
++    return () => clearInterval(id);
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Templates" icon={<LayoutTemplate className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 space-y-1.5">
++        {TPL_ITEMS.map((t, i) => (
++          <motion.div
++            key={t.name}
++            animate={{ scale: active === i ? 1.02 : 1 }}
++            transition={{ duration: 0.25 }}
++            className={cn(
++              'flex items-center justify-between rounded-md border px-2 py-1.5 transition-colors',
++              active === i ? 'border-brand/40 bg-brand-subtle' : 'border-line-subtle bg-raised'
++            )}
++          >
++            <div className="min-w-0">
++              <p className="text-[11px] font-medium text-ink">{t.name}</p>
++              <p className="text-[9px] text-ink-faint">{t.hint}</p>
++            </div>
++            {active === i && (
++              <motion.span
++                initial={{ opacity: 0 }}
++                animate={{ opacity: 1 }}
++                className="shrink-0 text-[9px] font-semibold text-brand"
++              >
++                install →
++              </motion.span>
++            )}
++          </motion.div>
++        ))}
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 10. Self-hosting — license verified badge                           */
++/* ------------------------------------------------------------------ */
++
++export function SelfHostingTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [pulse, setPulse] = useState(false);
++
++  useEffect(() => {
++    if (!inView) return;
++    const id = setInterval(() => setPulse((p) => !p), 1400);
++    return () => clearInterval(id);
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Self-hosting" icon={<KeyRound className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 flex min-h-[110px] flex-col items-center justify-center">
++        <motion.div
++          animate={{ boxShadow: pulse ? '0 0 0 6px rgba(34,197,94,0.15)' : '0 0 0 0px rgba(34,197,94,0)' }}
++          transition={{ duration: 1.2 }}
++          className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15"
++        >
++          <span className="text-sm text-brand">✓</span>
++        </motion.div>
++        <p className="mt-2 text-[11px] font-medium text-ink">License verified</p>
++        <p className="text-[9px] text-ink-faint">Pro tier · expires Nov 2027</p>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 11. Notifications — push + Slack                                    */
++/* ------------------------------------------------------------------ */
++
++export function NotificationsTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [show, setShow] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setShow(0); await wait(600); if (cancelled) return;
++        setShow(1); await wait(1400); if (cancelled) return;
++        setShow(2); await wait(2000);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Notifications" icon={<Bell className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 min-h-[110px] space-y-1.5">
++        <AnimatePresence>
++          {show >= 1 && (
++            <motion.div
++              key="push"
++              initial={{ opacity: 0, x: 8 }}
++              animate={{ opacity: 1, x: 0 }}
++              exit={{ opacity: 0 }}
++              className="flex items-center gap-2 rounded-md border border-line-subtle bg-raised px-2 py-1.5"
++            >
++              <Bell className="h-3 w-3 shrink-0 text-brand" />
++              <span className="min-w-0 flex-1 truncate text-[10px] text-ink">Task due in 1h</span>
++              <span className="shrink-0 text-[9px] text-ink-faint">push</span>
++            </motion.div>
++          )}
++        </AnimatePresence>
++        <AnimatePresence>
++          {show >= 2 && (
++            <motion.div
++              key="slack"
++              initial={{ opacity: 0, x: 8 }}
++              animate={{ opacity: 1, x: 0 }}
++              exit={{ opacity: 0 }}
++              className="flex items-center gap-2 rounded-md border border-line-subtle bg-raised px-2 py-1.5"
++            >
++              <span className="shrink-0 text-[10px] font-bold text-ink-muted">#</span>
++              <span className="min-w-0 flex-1 truncate text-[10px] text-ink">@you assigned a task</span>
++              <span className="shrink-0 text-[9px] text-ink-faint">slack</span>
++            </motion.div>
++          )}
++        </AnimatePresence>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 12. Marketplace — template earnings                                 */
++/* ------------------------------------------------------------------ */
++
++export function MarketplaceTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [earnings, setEarnings] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    setEarnings(0);
++    const target = 45000;
++    const duration = 2000;
++    const t0 = Date.now();
++    let raf;
++    const step = () => {
++      const p = Math.min(1, (Date.now() - t0) / duration);
++      setEarnings(Math.round(target * p));
++      if (p < 1) raf = requestAnimationFrame(step);
++    };
++    raf = requestAnimationFrame(step);
++    return () => cancelAnimationFrame(raf);
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Sell templates" icon={<Package className="h-3.5 w-3.5" />} badge="Pro" />
++
++      <div className="mt-4 rounded-md border border-line bg-raised p-2.5">
++        <div className="flex items-start justify-between gap-2">
++          <div className="min-w-0">
++            <p className="truncate text-[11px] font-medium text-ink">Sprint template</p>
++            <p className="text-[9px] text-ink-faint">₦500 · 12 installs</p>
++          </div>
++          <span className="shrink-0 rounded-sm bg-brand/15 px-1.5 py-0.5 text-[9px] font-semibold text-brand">v2</span>
++        </div>
++      </div>
++      <div className="mt-3">
++        <p className="text-[10px] text-ink-faint">This month</p>
++        <p className="font-mono text-lg font-semibold text-brand">
++          ₦{earnings.toLocaleString()}
++        </p>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 13. Integrations — GitHub + Slack with checkmarks                   */
++/* ------------------------------------------------------------------ */
++
++export function IntegrationsTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [revealed, setRevealed] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setRevealed(0); await wait(600); if (cancelled) return;
++        setRevealed(1); await wait(700); if (cancelled) return;
++        setRevealed(2); await wait(2400);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Integrations" icon={<Github className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 space-y-1.5">
++        {[
++          { name: 'GitHub', icon: <Github className="h-3 w-3" /> },
++          { name: 'Slack', icon: <span className="text-[10px] font-bold">#</span> },
++        ].map((item, i) => (
++          <motion.div
++            key={item.name}
++            animate={{ opacity: revealed > i ? 1 : 0.3 }}
++            className="flex items-center gap-2 rounded-md border border-line-subtle bg-raised px-2 py-1.5"
++          >
++            <span className="flex h-4 w-4 items-center justify-center rounded-sm bg-line-subtle text-ink-muted">
++              {item.icon}
++            </span>
++            <span className="min-w-0 flex-1 text-[11px] text-ink">{item.name}</span>
++            {revealed > i && (
++              <motion.span
++                initial={{ scale: 0.4, opacity: 0 }}
++                animate={{ scale: 1, opacity: 1 }}
++                className="text-[10px] text-brand"
++              >
++                ✓
++              </motion.span>
++            )}
++          </motion.div>
++        ))}
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 14. Analytics — animated bar chart                                  */
++/* ------------------------------------------------------------------ */
++
++const BAR_VALS = [40, 65, 48, 78, 90, 72, 85];
++
++export function AnalyticsTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [progress, setProgress] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    const t0 = Date.now();
++    const duration = 1600;
++    let raf;
++    const step = () => {
++      const p = Math.min(1, (Date.now() - t0) / duration);
++      setProgress(p);
++      if (p < 1) raf = requestAnimationFrame(step);
++    };
++    raf = requestAnimationFrame(step);
++    return () => cancelAnimationFrame(raf);
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Analytics that ship" icon={<BarChart3 className="h-3.5 w-3.5" />} />
++
++      <div className="mt-4 flex h-16 items-end gap-1.5">
++        {BAR_VALS.map((v, i) => (
++          <div key={i} className="flex-1">
++            <motion.div
++              animate={{ height: `${v * progress}%` }}
++              transition={{ duration: 0.1 }}
++              className="rounded-t-sm bg-brand"
++              style={{ height: 0 }}
++            />
++          </div>
++        ))}
++      </div>
++      <div className="mt-3 flex items-center justify-between text-[10px]">
++        <span className="text-ink-faint">Completion</span>
++        <span className="font-semibold text-brand">{Math.round(67 * progress)}%</span>
++      </div>
++    </motion.div>
++  );
++}
+diff --git a/src/components/landing/bento/DevTiles.jsx b/src/components/landing/bento/DevTiles.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/bento/DevTiles.jsx
+@@ -0,0 +1,172 @@
++import { useState, useEffect } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import { Code2, Webhook, Check } from 'lucide-react';
++import { TileHeader, useTileInView, wait, Cursor } from './shared';
++import { cn } from '@/lib/utils';
++
++/* ------------------------------------------------------------------ */
++/* 15. Public API — curl command types, JSON response appears          */
++/* ------------------------------------------------------------------ */
++
++const CURL_LINE = 'curl /api/v1/tasks -H "Authorization: Bearer tudu_…"';
++
++export function PublicApiTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [typed, setTyped] = useState('');
++  const [showResponse, setShowResponse] = useState(false);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setTyped(''); setShowResponse(false);
++        await wait(500); if (cancelled) return;
++        for (let i = 1; i <= CURL_LINE.length; i++) {
++          if (cancelled) return;
++          setTyped(CURL_LINE.slice(0, i));
++          await wait(22);
++        }
++        await wait(500); if (cancelled) return;
++        setShowResponse(true);
++        await wait(2800);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Public API" icon={<Code2 className="h-3.5 w-3.5" />} hint="REST · JSON" />
++
++      <div className="mt-4 min-h-[130px] rounded-md border border-line bg-black/40 p-2.5 font-mono text-[10.5px] leading-relaxed">
++        <div className="text-brand">$</div>
++        <div className="text-ink mt-0.5 break-all">
++          {typed}
++          {typed.length > 0 && typed.length < CURL_LINE.length && <Cursor />}
++        </div>
++        <AnimatePresence>
++          {showResponse && (
++            <motion.div
++              initial={{ opacity: 0 }}
++              animate={{ opacity: 1 }}
++              exit={{ opacity: 0 }}
++              className="mt-1.5 text-ink-muted"
++            >
++              <span className="text-brand">200</span> · <span className="text-brand/80">application/json</span>
++              <pre className="mt-1 whitespace-pre-wrap break-all text-ink">
++{`{
++  "count": 42,
++  "items": [{ "id": "…", "title": "Ship v1" }]
++}`}
++              </pre>
++            </motion.div>
++          )}
++        </AnimatePresence>
++      </div>
++    </motion.div>
++  );
++}
++
++/* ------------------------------------------------------------------ */
++/* 16. Webhooks — GitHub event arrives, HMAC verified, 200 OK          */
++/* ------------------------------------------------------------------ */
++
++export function WebhooksTile({ className }) {
++  const { ref, inView } = useTileInView();
++  const [phase, setPhase] = useState(0);
++
++  useEffect(() => {
++    if (!inView) return;
++    let cancelled = false;
++    const run = async () => {
++      while (!cancelled) {
++        setPhase(0); await wait(500); if (cancelled) return;
++        setPhase(1); await wait(1200); if (cancelled) return;
++        setPhase(2); await wait(1200); if (cancelled) return;
++        setPhase(3); await wait(2400);
++      }
++    };
++    run();
++    return () => { cancelled = true; };
++  }, [inView]);
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      whileHover={{ y: -2, transition: { duration: 0.15 } }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++      className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
++    >
++      <TileHeader title="Webhooks" icon={<Webhook className="h-3.5 w-3.5" />} hint="POST · HMAC" />
++
++      <div className="mt-4 min-h-[130px] rounded-md border border-line bg-black/40 p-2.5 font-mono text-[10.5px] leading-relaxed">
++        <div className="flex items-center gap-1.5 text-ink-muted">
++          <span className="text-ink-faint">GitHub</span>
++          <span className="text-brand">→</span>
++          <span className="text-ink-faint">tudu.app</span>
++        </div>
++        <AnimatePresence>
++          {phase >= 1 && (
++            <motion.div
++              initial={{ opacity: 0, y: 4 }}
++              animate={{ opacity: 1, y: 0 }}
++              className="mt-1.5 text-ink-muted"
++            >
++              <span className="text-amber-400">POST</span> /api/integrations/github/webhook
++            </motion.div>
++          )}
++        </AnimatePresence>
++        <AnimatePresence>
++          {phase >= 2 && (
++            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-1 text-ink">
++              <pre className="whitespace-pre-wrap break-all">
++{`{
++  "event": "pull_request.opened",
++  "action": "opened",
++  "task": "TUDU-42"
++}`}
++              </pre>
++            </motion.div>
++          )}
++        </AnimatePresence>
++        <AnimatePresence>
++          {phase >= 3 && (
++            <motion.div
++              initial={{ opacity: 0 }}
++              animate={{ opacity: 1 }}
++              className="mt-1.5 flex items-center gap-1.5 text-brand"
++            >
++              <Check className="h-3 w-3" strokeWidth={3} />
++              <span>200 OK · signature verified · task moved to In Review</span>
++            </motion.div>
++          )}
++        </AnimatePresence>
++      </div>
++    </motion.div>
++  );
++}
+diff --git a/src/components/landing/BentoGrid.jsx b/src/components/landing/BentoGrid.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/BentoGrid.jsx
+@@ -0,0 +1,54 @@
++import { motion } from 'framer-motion';
++import { AiBreakdownTile, CommandPaletteTile, FocusModeTile } from './bento/BigTiles';
++import {
++  NeverLoseWorkTile,
++  BoardsThatFitTile,
++  KeyboardFirstTile,
++  WorkspacesTile,
++} from './bento/MediumTiles';
++import {
++  PwaTile,
++  TemplatesTile,
++  SelfHostingTile,
++  NotificationsTile,
++  MarketplaceTile,
++  IntegrationsTile,
++  AnalyticsTile,
++} from './bento/SmallTiles';
++import { PublicApiTile, WebhooksTile } from './bento/DevTiles';
++
++const ease = [0.2, 0, 0, 1];
++
++export default function BentoGrid() {
++  return (
++    <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
++      <div className="mb-12 max-w-2xl">
++        <motion.p
++          initial={{ opacity: 0, y: 12 }}
++          whileInView={{ opacity: 1, y: 0 }}
++          viewport={{ once: true, margin: '-100px' }}
++          transition={{ duration: 0.5, ease }}
++          className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint"
++        >
++          The full toolkit
++        </motion.p>
++        <motion.h2
++          initial={{ opacity: 0, y: 16 }}
++          whileInView={{ opacity: 1, y: 0 }}
++          viewport={{ once: true, margin: '-100px' }}
++          transition={{ duration: 0.6, delay: 0.05, ease }}
++          className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl"
++        >
++          Everything you wish your boards had
++        </motion.h2>
++        <motion.p
++          initial={{ opacity: 0, y: 16 }}
++          whileInView={{ opacity: 1, y: 0 }}
++          viewport={{ once: true, margin: '-100px' }}
++          transition={{ duration: 0.6, delay: 0.1, ease }}
++          className="mt-3 text-base leading-relaxed text-ink-muted"
++        >
++          Sixteen features Trello hides behind paywalls and Jira hides behind manuals — shipped in every Tudu account. Hover a tile to see it live.
++        </motion.p>
++      </div>
++
++      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
++        <AiBreakdownTile className="sm:col-span-2 lg:col-span-7" />
++        <CommandPaletteTile className="sm:col-span-1 lg:col-span-5" />
++        <FocusModeTile className="sm:col-span-1 lg:col-span-4" />
++        <NeverLoseWorkTile className="sm:col-span-1 lg:col-span-4" />
++        <BoardsThatFitTile className="sm:col-span-2 lg:col-span-4" />
++        <KeyboardFirstTile className="sm:col-span-2 lg:col-span-7" />
++        <WorkspacesTile className="sm:col-span-1 lg:col-span-5" />
++        <PwaTile className="sm:col-span-1 lg:col-span-3" />
++        <TemplatesTile className="sm:col-span-1 lg:col-span-3" />
++        <SelfHostingTile className="sm:col-span-1 lg:col-span-3" />
++        <NotificationsTile className="sm:col-span-1 lg:col-span-3" />
++        <PublicApiTile className="sm:col-span-1 lg:col-span-6" />
++        <WebhooksTile className="sm:col-span-1 lg:col-span-6" />
++        <MarketplaceTile className="sm:col-span-1 lg:col-span-5" />
++        <IntegrationsTile className="sm:col-span-1 lg:col-span-3" />
++        <AnalyticsTile className="sm:col-span-2 lg:col-span-4" />
++      </div>
++    </section>
++  );
++}
