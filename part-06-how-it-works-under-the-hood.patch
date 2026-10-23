@@ -1,0 +1,1038 @@
+diff --git a/src/pages/Landing.jsx b/src/pages/Landing.jsx
+--- a/src/pages/Landing.jsx
++++ b/src/pages/Landing.jsx
+@@ -1,18 +1,22 @@
+ import Navbar from '@/components/landing/Navbar';
+ import Hero from '@/components/landing/Hero';
+ import LogoStrip from '@/components/landing/LogoStrip';
+ import ProblemSection from '@/components/landing/ProblemSection';
+ import BentoGrid from '@/components/landing/BentoGrid';
++import HowItWorks from '@/components/landing/HowItWorks';
++import UnderTheHood from '@/components/landing/UnderTheHood';
+ 
+ export default function Landing() {
+   return (
+     <div className="min-h-screen bg-canvas">
+       <Navbar />
+       <main className="pt-14">
+         <Hero />
+         <LogoStrip />
+         <ProblemSection />
+         <BentoGrid />
++        <HowItWorks />
++        <UnderTheHood />
+         <section className="min-h-[120vh] border-t border-line-subtle flex items-center justify-center">
+           <p className="text-xs text-ink-faint">
+             Scroll up to test the sticky-glass navbar.
+           </p>
+         </section>
+       </main>
+     </div>
+   );
+ }
+diff --git a/src/components/landing/HowItWorks.jsx b/src/components/landing/HowItWorks.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/HowItWorks.jsx
+@@ -0,0 +1,201 @@
++import { useRef, useState, useEffect } from 'react';
++import {
++  motion,
++  AnimatePresence,
++  useScroll,
++  useMotionValueEvent,
++} from 'framer-motion';
++import { CaptureDemo, OrganizeDemo, FocusDemo, ShipDemo } from './howitworks/StepDemos';
++
++const STEPS = [
++  {
++    id: 'capture',
++    short: 'Capture',
++    title: 'Capture in seconds',
++    body:
++      "Type it like you'd say it. Tudu parses the date, the category, and the priority from plain language — auto-creating a task with everything already filled in.",
++    Component: CaptureDemo,
++  },
++  {
++    id: 'organize',
++    short: 'Organize',
++    title: 'Organize with flow',
++    body:
++      'Drag with @dnd-kit. Multi-select and bulk-move without a modal. Every change broadcasts to every open tab over sockets.',
++    Component: OrganizeDemo,
++  },
++  {
++    id: 'focus',
++    short: 'Focus',
++    title: 'Stay in focus',
++    body:
++      'Pomodoro sessions and time logs roll up into your stats automatically. No separate timer app, no manual entry, no double counting.',
++    Component: FocusDemo,
++  },
++  {
++    id: 'ship',
++    short: 'Ship & measure',
++    title: 'Ship & measure',
++    body:
++      'Analytics animate from 0 → 100% completion. See what shipped, what\u2019s stuck, and what\u2019s overdue — at a glance.',
++    Component: ShipDemo,
++  },
++];
++
++function useIsDesktop() {
++  const [d, setD] = useState(
++    typeof window !== 'undefined' &&
++      window.matchMedia('(min-width: 1024px)').matches
++  );
++  useEffect(() => {
++    const mq = window.matchMedia('(min-width: 1024px)');
++    const h = (e) => setD(e.matches);
++    mq.addEventListener('change', h);
++    return () => mq.removeEventListener('change', h);
++  }, []);
++  return d;
++}
++
++function StepIndicator({ step, current, onClick }) {
++  const active = step.id === current.id;
++  return (
++    <button
++      type="button"
++      onClick={onClick}
++      className="flex items-center gap-3 text-left transition-opacity hover:opacity-100"
++      style={{ opacity: active ? 1 : 0.55 }}
++    >
++      <span
++        className={
++          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold transition-colors ' +
++          (active
++            ? 'bg-brand text-ink-inverse'
++            : 'border border-line text-ink-faint')
++        }
++      >
++        {STEPS.indexOf(step) + 1}
++      </span>
++      <span
++        className={
++          'text-[13px] ' +
++          (active ? 'font-medium text-ink' : 'text-ink-muted')
++        }
++      >
++        {step.short}
++      </span>
++    </button>
++  );
++}
++
++function DesktopHowItWorks() {
++  const trackRef = useRef(null);
++  const [step, setStep] = useState(0);
++  const stepRef = useRef(0);
++  const { scrollYProgress } = useScroll({
++    target: trackRef,
++    offset: ['start start', 'end end'],
++  });
++
++  useMotionValueEvent(scrollYProgress, 'change', (v) => {
++    const s = Math.min(STEPS.length - 1, Math.max(0, Math.floor(v * STEPS.length)));
++    if (s !== stepRef.current) {
++      stepRef.current = s;
++      setStep(s);
++    }
++  });
++
++  const scrollToStep = (i) => {
++    if (!trackRef.current) return;
++    const rect = trackRef.current.getBoundingClientRect();
++    const top = window.scrollY + rect.top;
++    const target = top + (i / STEPS.length) * trackRef.current.clientHeight + 60;
++    window.scrollTo({ top: target, behavior: 'smooth' });
++  };
++
++  const Current = STEPS[step];
++  const CurrentComponent = Current.Component;
++
++  return (
++    <div ref={trackRef} className="relative" style={{ height: '400vh' }}>
++      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
++        <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-16 px-6">
++          <div className="flex flex-col justify-center">
++            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
++              How it works
++            </p>
++
++            <AnimatePresence mode="wait">
++              <motion.div
++                key={Current.id}
++                initial={{ opacity: 0, y: 12 }}
++                animate={{ opacity: 1, y: 0 }}
++                exit={{ opacity: 0, y: -12 }}
++                transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
++              >
++                <h2 className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl">
++                  {Current.title}
++                </h2>
++                <p className="mt-4 max-w-md text-base leading-relaxed text-ink-muted">
++                  {Current.body}
++                </p>
++              </motion.div>
++            </AnimatePresence>
++
++            <ol className="mt-10 flex flex-col gap-3">
++              {STEPS.map((s, i) => (
++                <li key={s.id}>
++                  <StepIndicator
++                    step={s}
++                    current={Current}
++                    onClick={() => scrollToStep(i)}
++                  />
++                </li>
++              ))}
++            </ol>
++          </div>
++
++          <div className="flex items-center justify-center">
++            <div className="w-full max-w-md">
++              <AnimatePresence mode="wait">
++                <motion.div
++                  key={Current.id}
++                  initial={{ opacity: 0, y: 16 }}
++                  animate={{ opacity: 1, y: 0 }}
++                  exit={{ opacity: 0, y: -16 }}
++                  transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
++                >
++                  <CurrentComponent />
++                </motion.div>
++              </AnimatePresence>
++            </div>
++          </div>
++        </div>
++      </div>
++    </div>
++  );
++}
++
++function MobileHowItWorks() {
++  return (
++    <div className="mx-auto max-w-3xl px-6 py-16">
++      <div className="mb-10">
++        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
++          How it works
++        </p>
++        <h2 className="text-balance text-3xl font-semibold leading-tight text-ink">
++          Four steps from idea to shipped
++        </h2>
++      </div>
++
++      <div className="space-y-12">
++        {STEPS.map((s, i) => {
++          const C = s.Component;
++          return (
++            <motion.div
++              key={s.id}
++              initial={{ opacity: 0, y: 20 }}
++              whileInView={{ opacity: 1, y: 0 }}
++              viewport={{ once: true, margin: '-60px' }}
++              transition={{ duration: 0.5, ease: [0.2, 0, 0, 1] }}
++            >
++              <div className="mb-4 flex items-center gap-3">
++                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-semibold text-ink-inverse">
++                  {i + 1}
++                </span>
++                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
++                  {s.short}
++                </p>
++              </div>
++              <h3 className="text-2xl font-semibold text-ink">{s.title}</h3>
++              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.body}</p>
++              <div className="mt-5">
++                <C />
++              </div>
++            </motion.div>
++          );
++        })}
++      </div>
++    </div>
++  );
++}
++
++export default function HowItWorks() {
++  const isDesktop = useIsDesktop();
++  return isDesktop ? <DesktopHowItWorks /> : <MobileHowItWorks />;
++}
+diff --git a/src/components/landing/howitworks/StepDemos.jsx b/src/components/landing/howitworks/StepDemos.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/howitworks/StepDemos.jsx
+@@ -0,0 +1,477 @@
++import { useState, useEffect, useRef } from 'react';
++import { motion, AnimatePresence, useReducedMotion, useInView } from 'framer-motion';
++import { Check, Calendar, Tag, Zap, GripVertical } from 'lucide-react';
++import { cn } from '@/lib/utils';
++
++const wait = (ms) => new Promise((r) => setTimeout(r, ms));
++
++function useLoop(fn, deps = []) {
++  const ref = useRef(null);
++  const inView = useInView(ref, { margin: '-40px', once: false });
++  const reduced = useReducedMotion();
++  useEffect(() => {
++    if (!inView || reduced) return;
++    let cancelled = false;
++    (async () => {
++      while (!cancelled) {
++        await fn(() => cancelled);
++      }
++    })();
++    return () => { cancelled = true; };
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [inView, reduced, ...deps]);
++  return { ref, inView, reduced };
++}
++
++/* ================================================================== */
++/* 1. Capture in seconds — NLP types, chips appear, morphs to card    */
++/* ================================================================== */
++
++const CAPTURE_TEXT = 'Buy milk tomorrow 9am #personal urgent';
++const CAPTURE_CHIPS = [
++  { icon: Calendar, label: 'Tomorrow · 9am', tone: 'brand' },
++  { icon: Tag, label: 'Personal', tone: 'brand' },
++  { icon: Zap, label: 'High priority', tone: 'amber' },
++];
++
++export function CaptureDemo() {
++  const [typed, setTyped] = useState('');
++  const [chips, setChips] = useState(0);
++  const [phase, setPhase] = useState('typing');
++
++  const { ref, reduced } = useLoop(async (cancelled) => {
++    setPhase('typing'); setTyped(''); setChips(0);
++    await wait(500); if (cancelled()) return;
++    for (let i = 1; i <= CAPTURE_TEXT.length; i++) {
++      if (cancelled()) return;
++      setTyped(CAPTURE_TEXT.slice(0, i));
++      await wait(28);
++    }
++    await wait(300); if (cancelled()) return;
++    setPhase('parsing');
++    for (let i = 1; i <= CAPTURE_CHIPS.length; i++) {
++      if (cancelled()) return;
++      setChips(i);
++      await wait(320);
++    }
++    await wait(400); if (cancelled()) return;
++    setPhase('morphed');
++    await wait(2600);
++  });
++
++  return (
++    <div ref={ref} className="rounded-xl border border-line bg-surface p-4">
++      <div className="mb-3 flex items-center justify-between">
++        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
++          Quick add
++        </span>
++        <span className="text-[10px] text-ink-faint">
++          {phase === 'morphed' ? 'Created' : 'Typing…'}
++        </span>
++      </div>
++
++      <AnimatePresence mode="wait">
++        {phase !== 'morphed' ? (
++          <motion.div
++            key="composer"
++            initial={{ opacity: 0 }}
++            animate={{ opacity: 1 }}
++            exit={{ opacity: 0, y: -8 }}
++            transition={{ duration: 0.25 }}
++          >
++            <div className="rounded-md border border-line bg-raised px-3 py-2 text-[13px] text-ink">
++              {typed || reduced ? CAPTURE_TEXT : typed}
++              {phase === 'typing' && !reduced && (
++                <span className="ml-0.5 inline-block h-3 w-px animate-pulse bg-brand align-middle" />
++              )}
++            </div>
++            <div className="mt-3 flex min-h-[24px] flex-wrap gap-1.5">
++              {CAPTURE_CHIPS.slice(0, reduced ? 3 : chips).map((chip, i) => {
++                const Icon = chip.icon;
++                return (
++                  <motion.span
++                    key={chip.label}
++                    initial={{ opacity: 0, y: -4 }}
++                    animate={{ opacity: 1, y: 0 }}
++                    className={cn(
++                      'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium',
++                      chip.tone === 'amber'
++                        ? 'border-amber-400/30 bg-amber-400/10 text-amber-400'
++                        : 'border-brand/30 bg-brand-subtle text-brand'
++                    )}
++                  >
++                    <Icon className="h-2.5 w-2.5" />
++                    {chip.label}
++                  </motion.span>
++                );
++              })}
++            </div>
++          </motion.div>
++        ) : (
++          <motion.div
++            key="card"
++            initial={{ opacity: 0, scale: 0.96, y: 8 }}
++            animate={{ opacity: 1, scale: 1, y: 0 }}
++            exit={{ opacity: 0, scale: 0.96 }}
++            transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
++            className="rounded-md border border-line bg-raised p-3"
++          >
++            <div className="flex items-start gap-2">
++              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-line-strong" />
++              <div className="min-w-0 flex-1">
++                <p className="text-[13px] font-medium text-ink">Buy milk</p>
++                <div className="mt-1.5 flex flex-wrap gap-1.5">
++                  <span className="inline-flex items-center gap-1 rounded-sm bg-line-subtle px-1.5 py-0.5 text-[10px] text-ink-muted">
++                    <Calendar className="h-2.5 w-2.5" /> Tomorrow · 9am
++                  </span>
++                  <span className="inline-flex items-center gap-1 rounded-sm bg-brand-subtle px-1.5 py-0.5 text-[10px] text-brand">
++                    <Tag className="h-2.5 w-2.5" /> personal
++                  </span>
++                  <span className="inline-flex items-center gap-1 rounded-sm bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-400">
++                    <Zap className="h-2.5 w-2.5" /> High
++                  </span>
++                </div>
++              </div>
++            </div>
++          </motion.div>
++        )}
++      </AnimatePresence>
++    </div>
++  );
++}
++
++/* ================================================================== */
++/* 2. Organize with flow — drag, multi-select, bulk move              */
++/* ================================================================== */
++
++const ORGANIZE_COLS = [
++  { id: 'todo', name: 'To-do' },
++  { id: 'doing', name: 'Doing' },
++  { id: 'done', name: 'Done' },
++];
++
++const ORGANIZE_INITIAL = [
++  { id: 'o1', title: 'Design', column: 'todo' },
++  { id: 'o2', title: 'Review API', column: 'todo' },
++  { id: 'o3', title: 'Write notes', column: 'todo' },
++  { id: 'o4', title: 'Ship pricing', column: 'doing' },
++];
++
++export function OrganizeDemo() {
++  const [cards, setCards] = useState(ORGANIZE_INITIAL);
++  const [selected, setSelected] = useState([]);
++
++  const { ref, reduced } = useLoop(async (cancelled) => {
++    setCards(ORGANIZE_INITIAL); setSelected([]);
++    await wait(700); if (cancelled()) return;
++
++    setCards((c) =>
++      c.map((x) => (x.id === 'o1' ? { ...x, column: 'doing' } : x))
++    );
++    await wait(900); if (cancelled()) return;
++
++    setSelected(['o2', 'o3']);
++    await wait(900); if (cancelled()) return;
++
++    setCards((c) =>
++      c.map((x) =>
++        x.id === 'o2' || x.id === 'o3' ? { ...x, column: 'done' } : x
++      )
++    );
++    setSelected([]);
++    await wait(2400);
++  });
++
++  const visible = reduced ? ORGANIZE_INITIAL : cards;
++
++  return (
++    <div ref={ref} className="rounded-xl border border-line bg-surface p-4">
++      <div className="mb-3 flex items-center justify-between">
++        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
++          Board
++        </span>
++        <span className="text-[10px] text-ink-faint">
++          {selected.length > 0 ? `${selected.length} selected` : 'Drag to move'}
++        </span>
++      </div>
++
++      <div className="grid grid-cols-3 gap-2">
++        {ORGANIZE_COLS.map((col) => (
++          <div
++            key={col.id}
++            className="min-h-[160px] rounded-md border border-line-subtle bg-raised/40 p-1.5"
++          >
++            <div className="mb-1.5 px-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
++              {col.name}
++            </div>
++            <div className="space-y-1">
++              {visible
++                .filter((c) => c.column === col.id)
++                .map((card) => {
++                  const isSel = selected.includes(card.id);
++                  return (
++                    <motion.div
++                      key={card.id}
++                      layoutId={reduced ? undefined : `organize-${card.id}`}
++                      transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
++                      className={cn(
++                        'rounded-sm border bg-surface px-1.5 py-1 text-[10px] transition-colors',
++                        isSel
++                          ? 'border-brand bg-brand-subtle text-ink'
++                          : 'border-line-subtle text-ink'
++                      )}
++                    >
++                      <div className="flex items-center gap-1">
++                        {isSel && <Check className="h-2.5 w-2.5 shrink-0 text-brand" />}
++                        <GripVertical className="h-2.5 w-2.5 shrink-0 text-ink-faint" />
++                        <span className="truncate">{card.title}</span>
++                      </div>
++                    </motion.div>
++                  );
++                })}
++            </div>
++          </div>
++        ))}
++      </div>
++    </div>
++  );
++}
++
++/* ================================================================== */
++/* 3. Stay in focus — timer + growing stats + log entry                */
++/* ================================================================== */
++
++export function FocusDemo() {
++  const [seconds, setSeconds] = useState(25 * 60);
++  const [progress, setProgress] = useState(0);
++  const [logged, setLogged] = useState(false);
++
++  const { ref, reduced } = useLoop(async (cancelled) => {
++    setSeconds(25 * 60 - 42);
++    setProgress(0.15);
++    setLogged(false);
++    await wait(200);
++    for (let i = 0; i < 42; i++) {
++      if (cancelled()) return;
++      setSeconds((s) => Math.max(0, s - 1));
++      await wait(55);
++    }
++    for (let i = 1; i <= 20; i++) {
++      if (cancelled()) return;
++      setProgress(0.15 + (i / 20) * 0.85);
++      await wait(70);
++    }
++    setLogged(true);
++    await wait(2200);
++  });
++
++  const m = Math.floor(seconds / 60);
++  const s = seconds % 60;
++  const label = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
++  const pct = reduced ? 1 : 1 - seconds / (25 * 60);
++  const circ = 2 * Math.PI * 32;
++  const stats = [
++    { label: 'Today', value: Math.round(75 * progress) },
++    { label: 'Week', value: Math.round(480 * progress) },
++    { label: 'Month', value: Math.round(1920 * progress) },
++  ];
++
++  return (
++    <div ref={ref} className="rounded-xl border border-line bg-surface p-4">
++      <div className="mb-3 flex items-center justify-between">
++        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
++          Focus session
++        </span>
++        <span className="text-[10px] text-ink-faint">
++          {logged ? 'Logged' : 'In progress'}
++        </span>
++      </div>
++
++      <div className="flex items-center gap-4">
++        <div className="relative h-20 w-20 shrink-0">
++          <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
++            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border-subtle)" strokeWidth="4" />
++            <circle
++              cx="40" cy="40" r="32" fill="none"
++              stroke="var(--accent)" strokeWidth="4" strokeLinecap="round"
++              strokeDasharray={circ}
++              strokeDashoffset={circ * (1 - pct)}
++              style={{ transition: 'stroke-dashoffset 0.5s linear' }}
++            />
++          </svg>
++          <span className="absolute inset-0 flex items-center justify-center font-mono text-[12px] font-semibold text-ink tabular-nums">
++            {label}
++          </span>
++        </div>
++        <div className="min-w-0 flex-1">
++          <p className="text-[12px] font-medium text-ink">Design dashboard</p>
++          <p className="mt-0.5 text-[10px] text-ink-faint">Pomodoro · Session 2 of 4</p>
++        </div>
++      </div>
++
++      <div className="mt-4 grid grid-cols-3 gap-2">
++        {stats.map((st) => (
++          <div key={st.label} className="rounded-md border border-line-subtle bg-raised px-1.5 py-1">
++            <p className="text-[9px] text-ink-faint">{st.label}</p>
++            <p className="font-mono text-[11px] font-semibold text-ink tabular-nums">
++              {st.value}m
++            </p>
++          </div>
++        ))}
++      </div>
++
++      <AnimatePresence>
++        {logged && (
++          <motion.div
++            initial={{ opacity: 0, y: 6 }}
++            animate={{ opacity: 1, y: 0 }}
++            exit={{ opacity: 0 }}
++            transition={{ duration: 0.3 }}
++            className="mt-3 flex items-center gap-2 rounded-md border border-brand/30 bg-brand-subtle px-2 py-1.5 text-[10px] text-brand"
++          >
++            <Check className="h-3 w-3" strokeWidth={3} />
++            <span className="font-medium">+25m session logged</span>
++          </motion.div>
++        )}
++      </AnimatePresence>
++    </div>
++  );
++}
++
++/* ================================================================== */
++/* 4. Ship & measure — empty chart → bars grow → line draws → 100%    */
++/* ================================================================== */
++
++const SHIP_BARS = [40, 65, 55, 80, 95, 70, 88];
++
++export function ShipDemo() {
++  const [progress, setProgress] = useState(0);
++  const [count, setCount] = useState(0);
++
++  const { ref, reduced } = useLoop(async (cancelled) => {
++    setProgress(0); setCount(0);
++    await wait(400); if (cancelled()) return;
++    const steps = 24;
++    for (let i = 1; i <= steps; i++) {
++      if (cancelled()) return;
++      setProgress(i / steps);
++      setCount(Math.round((i / steps) * 100));
++      await wait(80);
++    }
++    await wait(2600);
++  });
++
++  const p = reduced ? 1 : progress;
++  const c = reduced ? 100 : count;
++
++  return (
++    <div ref={ref} className="rounded-xl border border-line bg-surface p-4">
++      <div className="mb-3 flex items-center justify-between">
++        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
++          Analytics
++        </span>
++        <span className="text-[10px] text-ink-faint">Last 7 days</span>
++      </div>
++
++      <div className="mb-4 flex items-end justify-between">
++        <div>
++          <p className="text-[10px] text-ink-faint">Completion</p>
++          <p className="font-mono text-2xl font-semibold text-brand tabular-nums">
++            {c}%
++          </p>
++        </div>
++        <AnimatePresence>
++          {c >= 100 && (
++            <motion.span
++              initial={{ opacity: 0, scale: 0.85 }}
++              animate={{ opacity: 1, scale: 1 }}
++              exit={{ opacity: 0 }}
++              className="inline-flex items-center gap-1 rounded-sm border border-brand/30 bg-brand-subtle px-2 py-0.5 text-[10px] font-medium text-brand"
++            >
++              <Check className="h-2.5 w-2.5" strokeWidth={3} /> All done
++            </motion.span>
++          )}
++        </AnimatePresence>
++      </div>
++
++      <div className="flex h-24 items-end gap-1.5">
++        {SHIP_BARS.map((v, i) => (
++          <div key={i} className="relative flex-1">
++            <motion.div
++              animate={{ height: `${v * p}%` }}
++              transition={{ duration: 0.15 }}
++              className="absolute bottom-0 left-0 right-0 rounded-t-sm bg-brand/80"
++            />
++          </div>
++        ))}
++      </div>
++
++      <div className="mt-2 flex justify-between text-[9px] text-ink-faint">
++        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
++          <span key={d}>{d}</span>
++        ))}
++      </div>
++    </div>
++  );
++}
+diff --git a/src/components/landing/UnderTheHood.jsx b/src/components/landing/UnderTheHood.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/UnderTheHood.jsx
+@@ -0,0 +1,91 @@
++import { motion } from 'framer-motion';
++import CodePanel from './underhood/CodePanel';
++
++const SOCKET_CODE = [
++  "import { Server } from 'socket.io';",
++  "import { verifyToken } from './jwt';",
++  "",
++  "const io = new Server(httpServer, { cors });",
++  "",
++  "io.use((socket, next) => {",
++  "  try {",
++  "    const user = verifyToken(socket.handshake.auth.token);",
++  "    socket.data.user = user;",
++  "    next();",
++  "  } catch {",
++  "    next(new Error('Unauthorized'));",
++  "  }",
++  "});",
++];
++
++const BACKEND_CODE = [
++  "import { pool } from './db';",
++  "",
++  "router.post('/', async (req, res) => {",
++  "  const { title, category, priority } = req.body;",
++  "  const userId = req.user.userId;",
++  "",
++  "  const { rows } = await pool.query(",
++  "    `INSERT INTO tasks (user_id, title, category, priority)",
++  "     VALUES ($1, $2, $3, $4) RETURNING *`,",
++  "    [userId, title, category, priority],",
++  "  );",
++  "",
++  "  res.status(201).json(rows[0]);",
++  "});",
++];
++
++const FRONTEND_CODE = [
++  "import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';",
++  "",
++  "export function useTasks(filters) {",
++  "  return useQuery({",
++  "    queryKey: ['tasks', filters],",
++  "    queryFn: () => api.get('/tasks', { params: filters }),",
++  "  });",
++  "}",
++  "",
++  "export function useCreateTask() {",
++  "  const qc = useQueryClient();",
++  "  return useMutation({",
++  "    mutationFn: (input) => api.post('/tasks', input),",
++  "    onSuccess: () => qc.invalidateQueries(['tasks']),",
++];
++
++const ease = [0.2, 0, 0, 1];
++
++export default function UnderTheHood() {
++  return (
++    <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
++      <div className="mb-12 max-w-2xl">
++        <motion.p
++          initial={{ opacity: 0, y: 12 }}
++          whileInView={{ opacity: 1, y: 0 }}
++          viewport={{ once: true, margin: '-100px' }}
++          transition={{ duration: 0.5, ease }}
++          className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint"
++        >
++          Under the hood
++        </motion.p>
++        <motion.h2
++          initial={{ opacity: 0, y: 16 }}
++          whileInView={{ opacity: 1, y: 0 }}
++          viewport={{ once: true, margin: '-100px' }}
++          transition={{ duration: 0.6, delay: 0.05, ease }}
++          className="text-balance text-3xl font-semibold leading-tight text-ink sm:text-4xl"
++        >
++          Real-time sync, one insert, one cache key
++        </motion.h2>
++        <motion.p
++          initial={{ opacity: 0, y: 16 }}
++          whileInView={{ opacity: 1, y: 0 }}
++          viewport={{ once: true, margin: '-100px' }}
++          transition={{ duration: 0.6, delay: 0.1, ease }}
++          className="mt-3 text-base leading-relaxed text-ink-muted"
++        >
++          Node, Postgres, Socket.io, React Query. No frameworks-in-a-framework,
++          no ORM magic. Just the code that runs your board, in the open.
++        </motion.p>
++      </div>
++
++      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
++        <CodePanel
++          title="server.ts"
++          language="typescript"
++          code={SOCKET_CODE}
++          delay={0}
++          status="connected · 2 clients"
++        />
++        <CodePanel
++          title="tasks.ts"
++          language="typescript"
++          code={BACKEND_CODE}
++          delay={350}
++          status="listening on :5000"
++        />
++        <CodePanel
++          title="useTasks.ts"
++          language="typescript"
++          code={FRONTEND_CODE}
++          delay={700}
++          status="live · staleTime 15s"
++        />
++      </div>
++    </section>
++  );
++}
+diff --git a/src/components/landing/underhood/highlight.js b/src/components/landing/underhood/highlight.js
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/underhood/highlight.js
+@@ -0,0 +1,89 @@
++const KEYWORDS = new Set([
++  'const', 'let', 'var', 'function', 'return', 'await', 'async',
++  'import', 'from', 'export', 'new', 'if', 'else', 'for', 'while',
++  'class', 'extends', 'typeof', 'in', 'of', 'try', 'catch', 'finally',
++  'throw', 'default', 'true', 'false', 'null', 'undefined',
++]);
++
++const PUNCT = new Set([
++  '{', '}', '(', ')', '[', ']', ';', ',', '.', '=', ':', '<', '>',
++  '|', '&', '!', '+', '-', '*', '/', '?',
++]);
++
++export function tokenize(line) {
++  const tokens = [];
++  let i = 0;
++  while (i < line.length) {
++    const c = line[i];
++
++    if (c === '/' && line[i + 1] === '/') {
++      tokens.push({ text: line.slice(i), type: 'comment' });
++      break;
++    }
++
++    if (c === '"' || c === "'" || c === '`') {
++      const q = c;
++      let j = i + 1;
++      while (j < line.length && line[j] !== q) {
++        if (line[j] === '\\') j++;
++        j++;
++      }
++      j = Math.min(j + 1, line.length);
++      tokens.push({ text: line.slice(i, j), type: 'string' });
++      i = j;
++      continue;
++    }
++
++    if (/\d/.test(c)) {
++      let j = i;
++      while (j < line.length && /[\d_]/.test(line[j])) j++;
++      tokens.push({ text: line.slice(i, j), type: 'number' });
++      i = j;
++      continue;
++    }
++
++    if (/[a-zA-Z_$]/.test(c)) {
++      let j = i;
++      while (j < line.length && /[a-zA-Z0-9_$]/.test(line[j])) j++;
++      const word = line.slice(i, j);
++      tokens.push({
++        text: word,
++        type: KEYWORDS.has(word) ? 'keyword' : 'plain',
++      });
++      i = j;
++      continue;
++    }
++
++    if (/\s/.test(c)) {
++      let j = i;
++      while (j < line.length && /\s/.test(line[j])) j++;
++      tokens.push({ text: line.slice(i, j), type: 'plain' });
++      i = j;
++      continue;
++    }
++
++    tokens.push({ text: c, type: PUNCT.has(c) ? 'punct' : 'plain' });
++    i++;
++  }
++  return tokens;
++}
++
++export const TYPE_COLOR = {
++  keyword: 'text-[#C792EA]',
++  string: 'text-[#A5D6A7]',
++  number: 'text-[#F5A524]',
++  comment: 'text-ink-faint italic',
++  punct: 'text-ink-muted',
++  plain: 'text-ink',
++};
++
++export function clipTokens(tokens, budget) {
++  if (budget <= 0) return [];
++  const out = [];
++  let used = 0;
++  for (const t of tokens) {
++    if (used + t.text.length <= budget) {
++      out.push(t);
++      used += t.text.length;
++    } else {
++      const remaining = budget - used;
++      if (remaining > 0) out.push({ text: t.text.slice(0, remaining), type: t.type });
++      break;
++    }
++  }
++  return out;
++}
+diff --git a/src/components/landing/underhood/CodePanel.jsx b/src/components/landing/underhood/CodePanel.jsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/landing/underhood/CodePanel.jsx
+@@ -0,0 +1,145 @@
++import { useMemo, useState, useEffect, useRef } from 'react';
++import { motion } from 'framer-motion';
++import { useInView, useReducedMotion } from 'framer-motion';
++import { tokenize, clipTokens, TYPE_COLOR } from './highlight';
++
++const wait = (ms) => new Promise((r) => setTimeout(r, ms));
++
++export default function CodePanel({ title, language, code, delay = 0, status }) {
++  const ref = useRef(null);
++  const inView = useInView(ref, { margin: '-80px', once: false });
++  const reduced = useReducedMotion();
++  const [typed, setTyped] = useState(0);
++
++  const allTokens = useMemo(() => code.map(tokenize), [code]);
++  const totalChars = useMemo(
++    () => code.reduce((sum, line) => sum + line.length + 1, 0),
++    [code]
++  );
++
++  useEffect(() => {
++    if (!inView) {
++      setTyped(0);
++      return;
++    }
++    if (reduced) {
++      setTyped(totalChars);
++      return;
++    }
++
++    let cancelled = false;
++    const run = async () => {
++      await wait(delay);
++      while (!cancelled) {
++        setTyped(0);
++        await wait(300);
++        for (let i = 2; i <= totalChars; i += 2) {
++          if (cancelled) return;
++          setTyped(i);
++          await wait(20);
++        }
++        setTyped(totalChars);
++        await wait(3000);
++      }
++    };
++    run();
++    return () => {
++      cancelled = true;
++      setTyped(0);
++    };
++  }, [inView, reduced, delay, totalChars]);
++
++  let lineStart = 0;
++  const renderedLines = code.map((line, idx) => {
++    const budget = Math.max(0, Math.min(line.length, typed - lineStart));
++    const isActive = typed >= lineStart && typed <= lineStart + line.length;
++    const tokens = clipTokens(allTokens[idx], budget);
++    const lineEnd = lineStart + line.length + 1;
++    lineStart = lineEnd;
++    return { idx, line, tokens, isActive, isLast: false };
++  });
++  const lastVisibleIdx = renderedLines.reduce(
++    (last, l) => (l.tokens.length > 0 ? l.idx : last),
++    0
++  );
++
++  return (
++    <motion.div
++      ref={ref}
++      initial={{ opacity: 0, y: 20 }}
++      whileInView={{ opacity: 1, y: 0 }}
++      viewport={{ once: true, margin: '-80px' }}
++      transition={{ duration: 0.5, delay: delay / 1000, ease: [0.2, 0, 0, 1] }}
++      className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm"
++    >
++      <div className="flex items-center gap-2 border-b border-line-subtle bg-raised/50 px-3 py-2">
++        <div className="flex gap-1.5">
++          <span className="h-2 w-2 rounded-full bg-red-500/50" />
++          <span className="h-2 w-2 rounded-full bg-amber-500/50" />
++          <span className="h-2 w-2 rounded-full bg-brand/50" />
++        </div>
++        <span className="ml-1 rounded-sm bg-surface px-1.5 py-0.5 font-mono text-[10px] text-ink-muted">
++          {title}
++        </span>
++        <span className="ml-auto font-mono text-[9px] uppercase tracking-wider text-ink-faint">
++          {language}
++        </span>
++      </div>
++
++      <div className="h-[320px] overflow-hidden bg-[#0A0A0C] px-3 py-2 font-mono text-[11px] leading-[20px]">
++        <div className="flex">
++          <div className="shrink-0 select-none pr-3 text-right text-[10px] text-ink-faint/60 tabular-nums">
++            {code.map((_, i) => (
++              <div key={i} className="leading-[20px]">
++                {i + 1}
++              </div>
++            ))}
++          </div>
++          <div className="min-w-0 flex-1 whitespace-pre">
++            {renderedLines.map((r) => (
++              <div key={r.idx} className="leading-[20px]">
++                {r.tokens.map((t, i) => (
++                  <span key={i} className={TYPE_COLOR[t.type]}>
++                    {t.text}
++                  </span>
++                ))}
++                {r.isActive && r.idx === lastVisibleIdx && !reduced && (
++                  <span className="ml-px inline-block h-[14px] w-[7px] animate-pulse bg-brand align-middle" />
++                )}
++                {r.tokens.length === 0 && !r.isActive && (
++                  <span className="text-ink-faint/0">&nbsp;</span>
++                )}
++              </div>
++            ))}
++          </div>
++        </div>
++      </div>
++
++      <div className="flex items-center gap-2 border-t border-line-subtle bg-raised/30 px-3 py-2">
++        <span className="relative flex h-1.5 w-1.5">
++          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
++          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand" />
++        </span>
++        <span className="truncate font-mono text-[10px] text-ink-muted">
++          {status}
++        </span>
++      </div>
++    </motion.div>
++  );
++}
