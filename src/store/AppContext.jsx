@@ -1,9 +1,22 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import confetti from 'canvas-confetti';
 import { MOCK_TASKS, MOCK_COLUMNS } from '@/lib/mockTasks';
 
 const AppContext = createContext(null);
 const POMODORO_SECONDS = 25 * 60;
 const UNDO_WINDOW_MS = 10000;
+
+function fireConfetti() {
+  try {
+    confetti({
+      particleCount: 60,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#22C55E', '#16A34A', '#4ADE80', '#86EFAC'],
+      disableForReducedMotion: true,
+    });
+  } catch {}
+}
 
 export function AppProvider({ children }) {
   const [syncStatus, setSyncStatus] = useState('live');
@@ -15,7 +28,9 @@ export function AppProvider({ children }) {
   const [columns, setColumns] = useState(MOCK_COLUMNS);
   const [undoToast, setUndoToast] = useState(null);
   const [isComposerOpen, setComposerOpen] = useState(false);
+  const [composerColumnId, setComposerColumnId] = useState(null);
   const [toasts, setToasts] = useState([]);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   useEffect(() => {
     if (!pomodoro && !timer) return;
@@ -54,8 +69,14 @@ export function AppProvider({ children }) {
     setSyncStatus((s) => (s === 'live' ? 'connecting' : s === 'connecting' ? 'offline' : 'live'));
   }, []);
 
-  const openComposer = useCallback(() => setComposerOpen(true), []);
-  const closeComposer = useCallback(() => setComposerOpen(false), []);
+  const openComposer = useCallback((columnId = null) => {
+    setComposerColumnId(columnId);
+    setComposerOpen(true);
+  }, []);
+  const closeComposer = useCallback(() => {
+    setComposerOpen(false);
+    setComposerColumnId(null);
+  }, []);
 
   const pushToast = useCallback((message, variant = 'info') => {
     const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -67,6 +88,19 @@ export function AppProvider({ children }) {
 
   const dismissToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const confirm = useCallback((opts) => {
+    return new Promise((resolve) => {
+      setConfirmDialog({ ...opts, resolve });
+    });
+  }, []);
+
+  const confirmResolve = useCallback((answer) => {
+    setConfirmDialog((prev) => {
+      if (prev && prev.resolve) prev.resolve(answer);
+      return null;
+    });
   }, []);
 
   const createTask = useCallback((input) => {
@@ -91,38 +125,73 @@ export function AppProvider({ children }) {
       board_id: input.board_id || 'b-1',
       deleted: false,
       created_at: new Date().toISOString(),
+      completed_at: null,
     };
     setTasks((prev) => [newTask, ...prev]);
     return newTask;
   }, [tasks, columns]);
 
   const updateTask = useCallback((id, patch) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    let targetColumnId = null;
+    let targetStage = null;
+    if (patch.column_id !== undefined) {
+      const col = columns.find((c) => c.id === patch.column_id);
+      if (col) { targetColumnId = col.id; targetStage = col.stage; }
+    } else if (patch.status !== undefined) {
+      const col = columns.find((c) => c.stage === patch.status);
+      if (col) { targetColumnId = col.id; targetStage = col.stage; }
+    }
+
+    if (targetColumnId && targetColumnId !== task.column_id) {
+      const col = columns.find((c) => c.id === targetColumnId);
+      if (col && col.wip_limit != null) {
+        const count = tasks.filter((t) => t.column_id === targetColumnId && !t.deleted).length;
+        if (count >= col.wip_limit) {
+          pushToast('"' + col.name + '" is full (WIP limit ' + col.wip_limit + '). Move or finish a card first.');
+          return;
+        }
+      }
+    }
+
+    if (targetStage === 'done' && task.status !== 'done') {
+      fireConfetti();
+    }
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
         const next = { ...t, ...patch };
-        if (patch.status !== undefined && patch.column_id === undefined) {
-          const target = columns.find((c) => c.stage === patch.status);
-          if (target) next.column_id = target.id;
+        if (patch.status !== undefined && patch.column_id === undefined && targetColumnId) {
+          next.column_id = targetColumnId;
         }
-        if (patch.column_id !== undefined && patch.status === undefined) {
-          const target = columns.find((c) => c.id === patch.column_id);
-          if (target) next.status = target.stage;
+        if (patch.column_id !== undefined && patch.status === undefined && targetStage) {
+          next.status = targetStage;
+        }
+        if (targetStage !== null) {
+          if (targetStage === 'done' && t.status !== 'done') next.completed_at = new Date().toISOString();
+          else if (targetStage !== 'done' && t.status === 'done') next.completed_at = null;
         }
         return next;
       })
     );
-  }, [columns]);
+  }, [tasks, columns, pushToast]);
 
   const moveTask = useCallback((id, targetColumnId) => {
-    const column = columns.find((c) => c.id === targetColumnId);
-    if (!column) return;
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, column_id: targetColumnId, status: column.stage } : t
-      )
-    );
-  }, [columns]);
+    updateTask(id, { column_id: targetColumnId });
+  }, [updateTask]);
+
+  const reorderColumns = useCallback((fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return;
+    setColumns((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next.map((c, i) => ({ ...c, position: i }));
+    });
+  }, []);
 
   const createColumn = useCallback((input) => {
     const newCol = {
@@ -148,10 +217,7 @@ export function AppProvider({ children }) {
   }, []);
 
   const deleteColumn = useCallback((id) => {
-    if (columns.length <= 1) {
-      pushToast('A board needs at least one column.');
-      return false;
-    }
+    if (columns.length <= 1) return false;
     const target = columns.find((c) => c.id === id);
     if (!target) return false;
     const siblings = columns.filter((c) => c.id !== id);
@@ -164,7 +230,7 @@ export function AppProvider({ children }) {
       )
     );
     return true;
-  }, [columns, pushToast]);
+  }, [columns]);
 
   const deleteTask = useCallback((id) => {
     setTasks((prev) => {
@@ -178,9 +244,7 @@ export function AppProvider({ children }) {
   const undoDelete = useCallback(() => {
     setUndoToast((toast) => {
       if (!toast) return toast;
-      setTasks((prev) =>
-        prev.map((t) => (t.id === toast.taskId ? { ...t, deleted: false } : t))
-      );
+      setTasks((prev) => prev.map((t) => (t.id === toast.taskId ? { ...t, deleted: false } : t)));
       return null;
     });
   }, []);
@@ -194,9 +258,10 @@ export function AppProvider({ children }) {
       timer, timerElapsed, startTimer, stopTimer,
       detail, openDetail, closeDetail,
       tasks, createTask, updateTask, moveTask, deleteTask, undoDelete, undoToast, clearUndo,
-      columns, createColumn, updateColumn, deleteColumn,
-      isComposerOpen, openComposer, closeComposer,
+      columns, createColumn, updateColumn, deleteColumn, reorderColumns,
+      isComposerOpen, openComposer, closeComposer, composerColumnId,
       toasts, pushToast, dismissToast,
+      confirm, confirmDialog, confirmResolve,
     }),
     [
       syncStatus, cycleSyncStatus,
@@ -204,9 +269,10 @@ export function AppProvider({ children }) {
       timer, timerElapsed, startTimer, stopTimer,
       detail, openDetail, closeDetail,
       tasks, createTask, updateTask, moveTask, deleteTask, undoDelete, undoToast, clearUndo,
-      columns, createColumn, updateColumn, deleteColumn,
-      isComposerOpen, openComposer, closeComposer,
+      columns, createColumn, updateColumn, deleteColumn, reorderColumns,
+      isComposerOpen, openComposer, closeComposer, composerColumnId,
       toasts, pushToast, dismissToast,
+      confirm, confirmDialog, confirmResolve,
     ]
   );
 

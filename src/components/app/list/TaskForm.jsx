@@ -12,9 +12,7 @@ function toDateTimeLocal(iso) {
 }
 
 function chipStyle(item) {
-  if (item.type === 'date') {
-    return 'border-sky-500/30 bg-sky-500/10 text-sky-400';
-  }
+  if (item.type === 'date') return 'border-sky-500/30 bg-sky-500/10 text-sky-400';
   if (item.type === 'category') {
     if (item.value === 'work') return 'border-blue-500/30 bg-blue-500/10 text-blue-400';
     if (item.value === 'personal') return 'border-purple-500/30 bg-purple-500/10 text-purple-400';
@@ -36,7 +34,7 @@ function chipIcon(item) {
 }
 
 export default function TaskForm({ onClose }) {
-  const { createTask } = useApp();
+  const { createTask, composerColumnId } = useApp();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -68,6 +66,7 @@ export default function TaskForm({ onClose }) {
       category: category || null,
       priority: priority || null,
       due_date: dueDate ? new Date(dueDate).toISOString() : null,
+      column_id: composerColumnId || null,
     });
     onClose();
   };
@@ -109,10 +108,7 @@ export default function TaskForm({ onClose }) {
                   return (
                     <span
                       key={i}
-                      className={
-                        'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium ' +
-                        chipStyle(item)
-                      }
+                      className={'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium ' + chipStyle(item)}
                     >
                       <Icon className="h-2.5 w-2.5 shrink-0" />
                       {item.label}

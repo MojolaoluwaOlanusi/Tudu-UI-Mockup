@@ -16,10 +16,11 @@ import TaskForm from '@/components/app/list/TaskForm';
 
 export default function BoardView() {
   const {
-    tasks, columns, openDetail, moveTask, createColumn, pushToast,
+    tasks, columns, openDetail, moveTask, createColumn, pushToast, reorderColumns,
     isComposerOpen, openComposer, closeComposer,
   } = useApp();
   const [activeId, setActiveId] = useState(null);
+  const [draggedColId, setDraggedColId] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -57,6 +58,17 @@ export default function BoardView() {
     moveTask(draggedId, targetColumnId);
   };
 
+  const handleColumnDragStart = (id) => setDraggedColId(id);
+  const handleColumnDragOver = (e, overId) => {
+    e.preventDefault();
+    if (!draggedColId || draggedColId === overId) return;
+    const from = columns.findIndex((c) => c.id === draggedColId);
+    const to = columns.findIndex((c) => c.id === overId);
+    if (from < 0 || to < 0 || from === to) return;
+    reorderColumns(from, to);
+  };
+  const handleColumnDragEnd = () => setDraggedColId(null);
+
   const handleAddColumn = () => {
     const col = createColumn({ name: 'New column', stage: 'todo' });
     if (col) openDetail({ type: 'column', id: col.id });
@@ -69,7 +81,7 @@ export default function BoardView() {
           <div className="min-w-0">
             <h1 className="font-handwritten text-3xl leading-none text-ink sm:text-4xl">Board</h1>
             <p className="mt-2 text-[11px] text-ink-faint">
-              Drag a card by its grip to move it between columns.
+              Drag a card by its grip. Drag a column header to reorder columns.
             </p>
           </div>
           <button
@@ -100,9 +112,13 @@ export default function BoardView() {
                   key={column.id}
                   column={column}
                   tasks={columnTasks}
+                  isColumnDragging={draggedColId === column.id}
                   onOpenTask={(task) => openDetail({ type: 'task', id: task.id })}
                   onOpenColumnSettings={() => openDetail({ type: 'column', id: column.id })}
-                  onAddCard={openComposer}
+                  onAddCard={() => openComposer(column.id)}
+                  onColumnDragStart={() => handleColumnDragStart(column.id)}
+                  onColumnDragOver={(e) => handleColumnDragOver(e, column.id)}
+                  onColumnDragEnd={handleColumnDragEnd}
                 />
               );
             })}

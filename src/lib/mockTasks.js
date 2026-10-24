@@ -24,14 +24,10 @@ export const COLUMN_COLORS = [
 
 export const MOCK_TASKS = [
   {
-    id: 't-1',
-    short_id: 42,
+    id: 't-1', short_id: 42,
     title: 'Design new dashboard',
     description: 'Ship the new analytics view with per-widget filters and a comparison mode against last period.',
-    status: 'doing',
-    column_id: 'col-2',
-    category: 'work',
-    priority: 'high',
+    status: 'doing', column_id: 'col-2', category: 'work', priority: 'high',
     due_date: daysFromNow(1).toISOString(),
     assignee: { id: 'u-2', name: 'Doyin Olanusi', initials: 'DO' },
     subtasks: [
@@ -40,116 +36,88 @@ export const MOCK_TASKS = [
       { id: 'st-1c', title: 'Add comparison mode', completed: false },
       { id: 'st-1d', title: 'Test on mobile', completed: false },
     ],
-    timerRunning: true,
-    board_id: 'b-1',
-    deleted: false,
+    timerRunning: true, board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-2).toISOString(),
+    completed_at: null,
   },
   {
-    id: 't-2',
-    short_id: 41,
-    title: 'Review API spec',
-    description: null,
-    status: 'todo',
-    column_id: 'col-1',
-    category: 'work',
-    priority: 'medium',
+    id: 't-2', short_id: 41,
+    title: 'Review API spec', description: null,
+    status: 'todo', column_id: 'col-1', category: 'work', priority: 'medium',
     due_date: daysFromNow(3).toISOString(),
-    assignee: null,
-    subtasks: [],
-    timerRunning: false,
-    board_id: 'b-1',
-    deleted: false,
+    assignee: null, subtasks: [], timerRunning: false,
+    board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-3).toISOString(),
+    completed_at: null,
   },
   {
-    id: 't-3',
-    short_id: 40,
+    id: 't-3', short_id: 40,
     title: 'Buy milk',
     description: 'Get the 2% from the corner shop.',
-    status: 'todo',
-    column_id: 'col-1',
-    category: 'personal',
-    priority: 'low',
+    status: 'todo', column_id: 'col-1', category: 'personal', priority: 'low',
     due_date: daysFromNow(-1).toISOString(),
-    assignee: null,
-    subtasks: [],
-    timerRunning: false,
-    board_id: 'b-1',
-    deleted: false,
+    assignee: null, subtasks: [], timerRunning: false,
+    board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-4).toISOString(),
+    completed_at: null,
   },
   {
-    id: 't-4',
-    short_id: 39,
-    title: 'Write launch notes',
-    description: null,
-    status: 'done',
-    column_id: 'col-3',
-    category: 'work',
-    priority: 'high',
+    id: 't-4', short_id: 39,
+    title: 'Write launch notes', description: null,
+    status: 'done', column_id: 'col-3', category: 'work', priority: 'high',
     due_date: null,
     assignee: { id: 'u-2', name: 'Doyin Olanusi', initials: 'DO' },
     subtasks: [
       { id: 'st-4a', title: 'Collect quotes', completed: true },
       { id: 'st-4b', title: 'Draft announcement', completed: true },
     ],
-    timerRunning: false,
-    board_id: 'b-1',
-    deleted: false,
+    timerRunning: false, board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-5).toISOString(),
+    completed_at: daysFromNow(-1).toISOString(),
   },
   {
-    id: 't-5',
-    short_id: 38,
-    title: 'Ship pricing page',
-    description: null,
-    status: 'doing',
-    column_id: 'col-2',
-    category: 'work',
-    priority: 'high',
+    id: 't-5', short_id: 38,
+    title: 'Ship pricing page', description: null,
+    status: 'doing', column_id: 'col-2', category: 'work', priority: 'high',
     due_date: daysFromNow(1).toISOString(),
     assignee: { id: 'u-3', name: 'Bisi Adebayo', initials: 'BA' },
-    subtasks: [],
-    timerRunning: false,
-    board_id: 'b-1',
-    deleted: false,
+    subtasks: [], timerRunning: false,
+    board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-1).toISOString(),
+    completed_at: null,
   },
   {
-    id: 't-6',
-    short_id: 37,
-    title: 'Read Shape Up',
-    description: null,
-    status: 'done',
-    column_id: 'col-3',
-    category: 'personal',
-    priority: null,
-    due_date: null,
-    assignee: null,
-    subtasks: [],
-    timerRunning: false,
-    board_id: 'b-1',
-    deleted: false,
+    id: 't-6', short_id: 37,
+    title: 'Read Shape Up', description: null,
+    status: 'done', column_id: 'col-3', category: 'personal', priority: null,
+    due_date: null, assignee: null, subtasks: [], timerRunning: false,
+    board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-6).toISOString(),
+    completed_at: daysFromNow(-3).toISOString(),
   },
   {
-    id: 't-7',
-    short_id: 36,
+    id: 't-7', short_id: 36,
     title: 'Fix login button on mobile',
     description: 'Button is 1px too low on iPhone SE.',
-    status: 'todo',
-    column_id: 'col-1',
-    category: 'work',
-    priority: 'medium',
-    due_date: null,
-    assignee: null,
-    subtasks: [],
-    timerRunning: false,
-    board_id: 'b-1',
-    deleted: false,
+    status: 'todo', column_id: 'col-1', category: 'work', priority: 'medium',
+    due_date: null, assignee: null, subtasks: [], timerRunning: false,
+    board_id: 'b-1', deleted: false,
     created_at: daysFromNow(-7).toISOString(),
+    completed_at: null,
   },
+];
+
+export const MOCK_POMODORO = [
+  { id: 'ps-1', task_id: 't-1', duration: 25, completed_at: daysFromNow(-0.3).toISOString() },
+  { id: 'ps-2', task_id: 't-1', duration: 25, completed_at: daysFromNow(-0.1).toISOString() },
+  { id: 'ps-3', task_id: 't-5', duration: 50, completed_at: daysFromNow(-0.8).toISOString() },
+  { id: 'ps-4', task_id: null, duration: 25, completed_at: daysFromNow(-1.2).toISOString() },
+  { id: 'ps-5', task_id: 't-2', duration: 25, completed_at: daysFromNow(-2).toISOString() },
+  { id: 'ps-6', task_id: 't-1', duration: 25, completed_at: daysFromNow(-3).toISOString() },
+  { id: 'ps-7', task_id: null, duration: 25, completed_at: daysFromNow(-4).toISOString() },
+  { id: 'ps-8', task_id: 't-4', duration: 25, completed_at: daysFromNow(-5).toISOString() },
+  { id: 'ps-9', task_id: null, duration: 25, completed_at: daysFromNow(-6).toISOString() },
+  { id: 'ps-10', task_id: 't-5', duration: 25, completed_at: daysFromNow(-1.5).toISOString() },
 ];
 
 export function parseTaskText(text) {
@@ -199,8 +167,7 @@ export function parseTaskText(text) {
       let delta = (target - d.getDay() + 7) % 7;
       if (delta === 0) delta = 7;
       d.setDate(d.getDate() + delta);
-      date = d;
-      hasDate = true;
+      date = d; hasDate = true;
       remaining = remaining.replace(dayMatch[0], ' ');
     }
   }
@@ -223,37 +190,26 @@ export function parseTaskText(text) {
   const title = remaining.replace(/\s+/g, ' ').trim() || original.trim();
 
   const matchedItems = [];
-  if (category) {
-    matchedItems.push({ type: 'category', value: category, label: '#' + category });
-  }
-  if (priority) {
-    matchedItems.push({ type: 'priority', value: priority, label: priority + ' priority' });
-  }
+  if (category) matchedItems.push({ type: 'category', value: category, label: '#' + category });
+  if (priority) matchedItems.push({ type: 'priority', value: priority, label: priority + ' priority' });
   if (hasDate && date) {
     const opts = hasTime
       ? { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
       : { month: 'short', day: 'numeric' };
-    matchedItems.push({
-      type: 'date',
-      value: 'date',
-      label: 'Due ' + date.toLocaleDateString(undefined, opts),
-    });
+    matchedItems.push({ type: 'date', value: 'date', label: 'Due ' + date.toLocaleDateString(undefined, opts) });
   }
 
   return {
     title,
     due_date: date ? date.toISOString() : null,
-    category,
-    priority,
+    category, priority,
     matched: matchedItems.map((m) => m.label),
     matchedItems,
   };
 }
 
 export function groupTasks(tasks, groupBy) {
-  if (groupBy === 'none') {
-    return [{ key: 'all', label: 'All tasks', tasks }];
-  }
+  if (groupBy === 'none') return [{ key: 'all', label: 'All tasks', tasks }];
   if (groupBy === 'status') {
     const labels = { todo: 'To-do', doing: 'Doing', done: 'Done' };
     return ['todo', 'doing', 'done']
@@ -264,8 +220,7 @@ export function groupTasks(tasks, groupBy) {
     const labels = { high: 'High priority', medium: 'Medium priority', low: 'Low priority', none: 'No priority' };
     return ['high', 'medium', 'low', 'none']
       .map((p) => ({
-        key: p,
-        label: labels[p],
+        key: p, label: labels[p],
         tasks: tasks.filter((t) => (p === 'none' ? !t.priority : t.priority === p)),
       }))
       .filter((g) => g.tasks.length > 0);
@@ -275,9 +230,7 @@ export function groupTasks(tasks, groupBy) {
     groups.set('none', { key: 'none', label: 'Unassigned', tasks: [] });
     for (const t of tasks) {
       const key = t.assignee ? t.assignee.id : 'none';
-      if (!groups.has(key)) {
-        groups.set(key, { key, label: t.assignee ? t.assignee.name : 'Unassigned', tasks: [] });
-      }
+      if (!groups.has(key)) groups.set(key, { key, label: t.assignee ? t.assignee.name : 'Unassigned', tasks: [] });
       groups.get(key).tasks.push(t);
     }
     return Array.from(groups.values()).filter((g) => g.tasks.length > 0);

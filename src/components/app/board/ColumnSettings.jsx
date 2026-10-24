@@ -10,7 +10,7 @@ const STAGES = [
 ];
 
 export default function ColumnSettings({ column, onClose }) {
-  const { updateColumn, deleteColumn, columns, tasks } = useApp();
+  const { updateColumn, deleteColumn, columns, tasks, confirm } = useApp();
   const [name, setName] = useState(column.name);
   const [stage, setStage] = useState(column.stage);
   const [color, setColor] = useState(column.color);
@@ -22,19 +22,10 @@ export default function ColumnSettings({ column, onClose }) {
     if (name.trim()) updateColumn(column.id, { name: name.trim() });
     else setName(column.name);
   };
-  const saveStage = (v) => {
-    setStage(v);
-    updateColumn(column.id, { stage: v });
-  };
-  const saveColor = (c) => {
-    setColor(c);
-    updateColumn(column.id, { color: c });
-  };
+  const saveStage = (v) => { setStage(v); updateColumn(column.id, { stage: v }); };
+  const saveColor = (c) => { setColor(c); updateColumn(column.id, { color: c }); };
   const saveWip = () => {
-    if (wip === '') {
-      updateColumn(column.id, { wip_limit: null });
-      return;
-    }
+    if (wip === '') { updateColumn(column.id, { wip_limit: null }); return; }
     const n = Number(wip);
     if (!Number.isInteger(n) || n < 1) {
       setWip(column.wip_limit != null ? String(column.wip_limit) : '');
@@ -43,10 +34,16 @@ export default function ColumnSettings({ column, onClose }) {
     updateColumn(column.id, { wip_limit: n });
   };
 
-  const handleDelete = () => {
-    if (!window.confirm('Delete "' + column.name + '"? Cards will move to another column.')) return;
-    const ok = deleteColumn(column.id);
-    if (ok) onClose();
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Delete "' + column.name + '"?',
+      body: 'Cards will move to another column of the same stage (or the first remaining column).',
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
+    const deleted = deleteColumn(column.id);
+    if (deleted) onClose();
   };
 
   return (
@@ -67,10 +64,7 @@ export default function ColumnSettings({ column, onClose }) {
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="mb-4 flex items-center gap-2">
-          <span
-            className="h-3 w-3 shrink-0 rounded-full"
-            style={{ backgroundColor: color }}
-          />
+          <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: color }} />
           <h2 className="min-w-0 truncate text-base font-semibold text-ink">{column.name}</h2>
           <span className="shrink-0 text-[11px] text-ink-faint tabular-nums">
             {cardCount} card{cardCount === 1 ? '' : 's'}
@@ -121,9 +115,7 @@ export default function ColumnSettings({ column, onClose }) {
                   title={c.name}
                   className={
                     'h-7 w-7 rounded-full border-2 transition-all ' +
-                    (color === c.hex
-                      ? 'border-ink scale-110'
-                      : 'border-transparent hover:scale-105')
+                    (color === c.hex ? 'border-ink scale-110' : 'border-transparent hover:scale-105')
                   }
                   style={{ backgroundColor: c.hex }}
                 />

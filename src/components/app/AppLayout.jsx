@@ -4,6 +4,7 @@ import Topbar from './Topbar';
 import Sidebar from './sidebar/Sidebar';
 import DetailPanel from './DetailPanel';
 import ToastStack from './Toast';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function AppLayout() {
   return (
@@ -20,6 +21,7 @@ export default function AppLayout() {
           <DetailPanel />
         </div>
         <ToastStack />
+        <ConfirmDialog />
       </div>
     </AppProvider>
   );
