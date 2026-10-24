@@ -4,6 +4,24 @@ function daysFromNow(n) {
   return d;
 }
 
+export const MOCK_COLUMNS = [
+  { id: 'col-1', board_id: 'b-1', name: 'To-do', stage: 'todo', color: '#94A3B8', wip_limit: 5, position: 0 },
+  { id: 'col-2', board_id: 'b-1', name: 'Doing', stage: 'doing', color: '#F59E0B', wip_limit: 3, position: 1 },
+  { id: 'col-3', board_id: 'b-1', name: 'Done', stage: 'done', color: '#22C55E', wip_limit: null, position: 2 },
+];
+
+export const COLUMN_COLORS = [
+  { name: 'slate', hex: '#94A3B8' },
+  { name: 'red', hex: '#EF4444' },
+  { name: 'orange', hex: '#F97316' },
+  { name: 'amber', hex: '#F59E0B' },
+  { name: 'green', hex: '#22C55E' },
+  { name: 'teal', hex: '#14B8A6' },
+  { name: 'blue', hex: '#3B82F6' },
+  { name: 'violet', hex: '#8B5CF6' },
+  { name: 'pink', hex: '#EC4899' },
+];
+
 export const MOCK_TASKS = [
   {
     id: 't-1',
@@ -11,6 +29,7 @@ export const MOCK_TASKS = [
     title: 'Design new dashboard',
     description: 'Ship the new analytics view with per-widget filters and a comparison mode against last period.',
     status: 'doing',
+    column_id: 'col-2',
     category: 'work',
     priority: 'high',
     due_date: daysFromNow(1).toISOString(),
@@ -24,6 +43,7 @@ export const MOCK_TASKS = [
     timerRunning: true,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-2).toISOString(),
   },
   {
     id: 't-2',
@@ -31,6 +51,7 @@ export const MOCK_TASKS = [
     title: 'Review API spec',
     description: null,
     status: 'todo',
+    column_id: 'col-1',
     category: 'work',
     priority: 'medium',
     due_date: daysFromNow(3).toISOString(),
@@ -39,6 +60,7 @@ export const MOCK_TASKS = [
     timerRunning: false,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-3).toISOString(),
   },
   {
     id: 't-3',
@@ -46,6 +68,7 @@ export const MOCK_TASKS = [
     title: 'Buy milk',
     description: 'Get the 2% from the corner shop.',
     status: 'todo',
+    column_id: 'col-1',
     category: 'personal',
     priority: 'low',
     due_date: daysFromNow(-1).toISOString(),
@@ -54,6 +77,7 @@ export const MOCK_TASKS = [
     timerRunning: false,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-4).toISOString(),
   },
   {
     id: 't-4',
@@ -61,6 +85,7 @@ export const MOCK_TASKS = [
     title: 'Write launch notes',
     description: null,
     status: 'done',
+    column_id: 'col-3',
     category: 'work',
     priority: 'high',
     due_date: null,
@@ -72,6 +97,7 @@ export const MOCK_TASKS = [
     timerRunning: false,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-5).toISOString(),
   },
   {
     id: 't-5',
@@ -79,6 +105,7 @@ export const MOCK_TASKS = [
     title: 'Ship pricing page',
     description: null,
     status: 'doing',
+    column_id: 'col-2',
     category: 'work',
     priority: 'high',
     due_date: daysFromNow(1).toISOString(),
@@ -87,6 +114,7 @@ export const MOCK_TASKS = [
     timerRunning: false,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-1).toISOString(),
   },
   {
     id: 't-6',
@@ -94,6 +122,7 @@ export const MOCK_TASKS = [
     title: 'Read Shape Up',
     description: null,
     status: 'done',
+    column_id: 'col-3',
     category: 'personal',
     priority: null,
     due_date: null,
@@ -102,6 +131,7 @@ export const MOCK_TASKS = [
     timerRunning: false,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-6).toISOString(),
   },
   {
     id: 't-7',
@@ -109,6 +139,7 @@ export const MOCK_TASKS = [
     title: 'Fix login button on mobile',
     description: 'Button is 1px too low on iPhone SE.',
     status: 'todo',
+    column_id: 'col-1',
     category: 'work',
     priority: 'medium',
     due_date: null,
@@ -117,6 +148,7 @@ export const MOCK_TASKS = [
     timerRunning: false,
     board_id: 'b-1',
     deleted: false,
+    created_at: daysFromNow(-7).toISOString(),
   },
 ];
 
@@ -222,18 +254,12 @@ export function groupTasks(tasks, groupBy) {
   if (groupBy === 'none') {
     return [{ key: 'all', label: 'All tasks', tasks }];
   }
-
   if (groupBy === 'status') {
     const labels = { todo: 'To-do', doing: 'Doing', done: 'Done' };
     return ['todo', 'doing', 'done']
-      .map((s) => ({
-        key: s,
-        label: labels[s],
-        tasks: tasks.filter((t) => t.status === s),
-      }))
+      .map((s) => ({ key: s, label: labels[s], tasks: tasks.filter((t) => t.status === s) }))
       .filter((g) => g.tasks.length > 0);
   }
-
   if (groupBy === 'priority') {
     const labels = { high: 'High priority', medium: 'Medium priority', low: 'Low priority', none: 'No priority' };
     return ['high', 'medium', 'low', 'none']
@@ -244,24 +270,18 @@ export function groupTasks(tasks, groupBy) {
       }))
       .filter((g) => g.tasks.length > 0);
   }
-
   if (groupBy === 'assignee') {
     const groups = new Map();
     groups.set('none', { key: 'none', label: 'Unassigned', tasks: [] });
     for (const t of tasks) {
       const key = t.assignee ? t.assignee.id : 'none';
       if (!groups.has(key)) {
-        groups.set(key, {
-          key,
-          label: t.assignee ? t.assignee.name : 'Unassigned',
-          tasks: [],
-        });
+        groups.set(key, { key, label: t.assignee ? t.assignee.name : 'Unassigned', tasks: [] });
       }
       groups.get(key).tasks.push(t);
     }
     return Array.from(groups.values()).filter((g) => g.tasks.length > 0);
   }
-
   return [{ key: 'all', label: 'All tasks', tasks }];
 }
 
@@ -280,11 +300,5 @@ export const FILTER_TYPES = [
     { value: 'work', label: 'Work' },
     { value: 'personal', label: 'Personal' },
     { value: 'study', label: 'Study' },
-  ]},
-  { key: 'assignee', label: 'Assignee', options: [
-    { value: 'me', label: 'Me' },
-    { value: 'u-2', label: 'Doyin Olanusi' },
-    { value: 'u-3', label: 'Bisi Adebayo' },
-    { value: 'none', label: 'Unassigned' },
   ]},
 ];

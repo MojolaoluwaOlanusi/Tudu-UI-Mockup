@@ -2,19 +2,28 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '@/store/AppContext';
 import TaskDetail from '@/components/app/list/TaskDetail';
+import ColumnSettings from '@/components/app/board/ColumnSettings';
 
 export default function DetailPanel() {
-  const { detail, closeDetail, tasks } = useApp();
+  const { detail, closeDetail, tasks, columns } = useApp();
   const open = detail !== null;
 
   const task =
     detail && detail.type === 'task'
       ? tasks.find((t) => t.id === detail.id && !t.deleted)
       : null;
+  const column =
+    detail && detail.type === 'column'
+      ? columns.find((c) => c.id === detail.id)
+      : null;
+
+  const invalid =
+    (detail && detail.type === 'task' && !task) ||
+    (detail && detail.type === 'column' && !column);
 
   useEffect(() => {
-    if (detail?.type === 'task' && !task) closeDetail();
-  }, [detail, task, closeDetail]);
+    if (invalid) closeDetail();
+  }, [invalid, closeDetail]);
 
   useEffect(() => {
     if (!open) return;
@@ -23,23 +32,27 @@ export default function DetailPanel() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, closeDetail]);
 
-  const body = !open ? null : detail.type === 'task' && task ? (
-    <TaskDetail task={task} onClose={closeDetail} />
-  ) : null;
+  const body = !open
+    ? null
+    : detail.type === 'task' && task
+      ? <TaskDetail task={task} onClose={closeDetail} />
+      : detail.type === 'column' && column
+        ? <ColumnSettings column={column} onClose={closeDetail} />
+        : null;
 
   return (
     <>
       <motion.aside
         initial={false}
-        animate={{ width: open && detail?.type === 'task' && task ? 384 : 0 }}
+        animate={{ width: open && body ? 384 : 0 }}
         transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
         className="relative hidden shrink-0 overflow-hidden rounded-xl border border-line-subtle bg-surface md:block"
       >
-        <div className="h-full w-96">{body}</div>
+        <div className="flex h-full w-96 flex-col">{body}</div>
       </motion.aside>
 
       <AnimatePresence>
-        {open && (
+        {open && body && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -55,7 +68,7 @@ export default function DetailPanel() {
               transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
               className="w-full max-w-sm overflow-hidden rounded-l-2xl bg-surface shadow-2xl"
             >
-              <div className="h-full">{body}</div>
+              <div className="flex h-full flex-col">{body}</div>
             </motion.aside>
           </motion.div>
         )}

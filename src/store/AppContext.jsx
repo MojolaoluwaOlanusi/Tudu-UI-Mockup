@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { MOCK_TASKS } from '@/lib/mockTasks';
+import { MOCK_TASKS, MOCK_COLUMNS } from '@/lib/mockTasks';
 
 const AppContext = createContext(null);
 const POMODORO_SECONDS = 25 * 60;
@@ -12,8 +12,10 @@ export function AppProvider({ children }) {
   const [detail, setDetail] = useState(null);
   const [now, setNow] = useState(() => Date.now());
   const [tasks, setTasks] = useState(MOCK_TASKS);
+  const [columns, setColumns] = useState(MOCK_COLUMNS);
   const [undoToast, setUndoToast] = useState(null);
   const [isComposerOpen, setComposerOpen] = useState(false);
+  const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
     if (!pomodoro && !timer) return;
@@ -55,15 +57,31 @@ export function AppProvider({ children }) {
   const openComposer = useCallback(() => setComposerOpen(true), []);
   const closeComposer = useCallback(() => setComposerOpen(false), []);
 
+  const pushToast = useCallback((message, variant = 'info') => {
+    const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4500);
+  }, []);
+
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   const createTask = useCallback((input) => {
     const id = 't-' + Date.now();
-    const maxShort = MOCK_TASKS.reduce((m, t) => Math.max(m, t.short_id || 0), 100);
+    const maxShort = tasks.reduce((m, t) => Math.max(m, t.short_id || 0), 100);
+    const targetColumn = input.column_id
+      ? columns.find((c) => c.id === input.column_id)
+      : columns.find((c) => c.stage === (input.status || 'todo'));
     const newTask = {
       id,
       short_id: maxShort + 1,
       title: input.title || 'Untitled task',
       description: input.description || null,
-      status: input.status || 'todo',
+      status: targetColumn ? targetColumn.stage : 'todo',
+      column_id: targetColumn ? targetColumn.id : null,
       category: input.category || null,
       priority: input.priority || null,
       due_date: input.due_date || null,
@@ -76,11 +94,77 @@ export function AppProvider({ children }) {
     };
     setTasks((prev) => [newTask, ...prev]);
     return newTask;
-  }, []);
+  }, [tasks, columns]);
 
   const updateTask = useCallback((id, patch) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        const next = { ...t, ...patch };
+        if (patch.status !== undefined && patch.column_id === undefined) {
+          const target = columns.find((c) => c.stage === patch.status);
+          if (target) next.column_id = target.id;
+        }
+        if (patch.column_id !== undefined && patch.status === undefined) {
+          const target = columns.find((c) => c.id === patch.column_id);
+          if (target) next.status = target.stage;
+        }
+        return next;
+      })
+    );
+  }, [columns]);
+
+  const moveTask = useCallback((id, targetColumnId) => {
+    const column = columns.find((c) => c.id === targetColumnId);
+    if (!column) return;
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, column_id: targetColumnId, status: column.stage } : t
+      )
+    );
+  }, [columns]);
+
+  const createColumn = useCallback((input) => {
+    const newCol = {
+      id: 'col-' + Date.now(),
+      board_id: 'b-1',
+      name: input.name || 'New column',
+      stage: input.stage || 'todo',
+      color: input.color || '#94A3B8',
+      wip_limit: input.wip_limit != null ? input.wip_limit : null,
+      position: columns.length,
+    };
+    setColumns((prev) => [...prev, newCol]);
+    return newCol;
+  }, [columns.length]);
+
+  const updateColumn = useCallback((id, patch) => {
+    setColumns((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+    if (patch.stage !== undefined) {
+      setTasks((prev) =>
+        prev.map((t) => (t.column_id === id ? { ...t, status: patch.stage } : t))
+      );
+    }
   }, []);
+
+  const deleteColumn = useCallback((id) => {
+    if (columns.length <= 1) {
+      pushToast('A board needs at least one column.');
+      return false;
+    }
+    const target = columns.find((c) => c.id === id);
+    if (!target) return false;
+    const siblings = columns.filter((c) => c.id !== id);
+    const sameStage = siblings.find((c) => c.stage === target.stage);
+    const fallback = sameStage || siblings[0];
+    setColumns(siblings);
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.column_id === id ? { ...t, column_id: fallback.id, status: fallback.stage } : t
+      )
+    );
+    return true;
+  }, [columns, pushToast]);
 
   const deleteTask = useCallback((id) => {
     setTasks((prev) => {
@@ -94,7 +178,9 @@ export function AppProvider({ children }) {
   const undoDelete = useCallback(() => {
     setUndoToast((toast) => {
       if (!toast) return toast;
-      setTasks((prev) => prev.map((t) => (t.id === toast.taskId ? { ...t, deleted: false } : t)));
+      setTasks((prev) =>
+        prev.map((t) => (t.id === toast.taskId ? { ...t, deleted: false } : t))
+      );
       return null;
     });
   }, []);
@@ -107,16 +193,20 @@ export function AppProvider({ children }) {
       pomodoro, pomodoroRemaining, startPomodoro, stopPomodoro,
       timer, timerElapsed, startTimer, stopTimer,
       detail, openDetail, closeDetail,
-      tasks, createTask, updateTask, deleteTask, undoDelete, undoToast, clearUndo,
+      tasks, createTask, updateTask, moveTask, deleteTask, undoDelete, undoToast, clearUndo,
+      columns, createColumn, updateColumn, deleteColumn,
       isComposerOpen, openComposer, closeComposer,
+      toasts, pushToast, dismissToast,
     }),
     [
       syncStatus, cycleSyncStatus,
       pomodoro, pomodoroRemaining, startPomodoro, stopPomodoro,
       timer, timerElapsed, startTimer, stopTimer,
       detail, openDetail, closeDetail,
-      tasks, createTask, updateTask, deleteTask, undoDelete, undoToast, clearUndo,
+      tasks, createTask, updateTask, moveTask, deleteTask, undoDelete, undoToast, clearUndo,
+      columns, createColumn, updateColumn, deleteColumn,
       isComposerOpen, openComposer, closeComposer,
+      toasts, pushToast, dismissToast,
     ]
   );
 

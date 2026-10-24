@@ -3,6 +3,7 @@ import { AppProvider } from '@/store/AppContext';
 import Topbar from './Topbar';
 import Sidebar from './sidebar/Sidebar';
 import DetailPanel from './DetailPanel';
+import ToastStack from './Toast';
 
 export default function AppLayout() {
   return (
@@ -18,6 +19,7 @@ export default function AppLayout() {
           </main>
           <DetailPanel />
         </div>
+        <ToastStack />
       </div>
     </AppProvider>
   );
