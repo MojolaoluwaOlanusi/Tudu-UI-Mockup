@@ -7,6 +7,7 @@ import ToastStack from './Toast';
 import ConfirmDialog from './ConfirmDialog';
 import CommandPalette from './CommandPalette';
 import ShortcutHelp from './ShortcutHelp';
+import ExpiredSessionDemo from './ExpiredSessionDemo';
 import { useAppShortcuts } from '@/hooks/useAppShortcuts';
 
 function ShellInner() {
@@ -27,6 +28,7 @@ function ShellInner() {
       <ConfirmDialog />
       <CommandPalette />
       <ShortcutHelp />
+      <ExpiredSessionDemo />
     </div>
   );
 }

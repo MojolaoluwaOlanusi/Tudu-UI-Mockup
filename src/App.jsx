@@ -2,9 +2,17 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import Landing from './pages/Landing.jsx';
 import Demo from './pages/Demo.jsx';
-import Stub from './pages/Stub.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import PricingPage from './pages/PricingPage.jsx';
+import DocsPage from './pages/DocsPage.jsx';
+import ChangelogPage from './pages/ChangelogPage.jsx';
+import HelpPage from './pages/HelpPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
+import BlogPage from './pages/BlogPage.jsx';
+import CommunityPage from './pages/CommunityPage.jsx';
+import StatusPage from './pages/StatusPage.jsx';
+import LegalPage from './pages/LegalPage.jsx';
+import SolutionsPage from './pages/SolutionsPage.jsx';
 import AppLayout from './components/app/AppLayout.jsx';
 import AppHome from './pages/app/AppHome.jsx';
 import AppBoard from './pages/app/AppBoard.jsx';
@@ -31,18 +39,22 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<AuthPage mode="login" />} />
         <Route path="/signup" element={<AuthPage mode="signup" />} />
-        <Route path="/changelog" element={<Stub title="Changelog" part={15} />} />
-        <Route path="/docs" element={<Stub title="Documentation" part={15} />} />
-        <Route path="/docs/*" element={<Stub title="Documentation" part={15} />} />
-        <Route path="/solutions/*" element={<Stub title="Solutions" part={15} />} />
-        <Route path="/help" element={<Stub title="Help center" part={15} />} />
-        <Route path="/contact" element={<Stub title="Contact" part={15} />} />
-        <Route path="/blog" element={<Stub title="Blog" part={15} />} />
-        <Route path="/community" element={<Stub title="Community" part={15} />} />
-        <Route path="/status" element={<Stub title="Status page" part={15} />} />
-        <Route path="/privacy" element={<Stub title="Privacy" part={15} />} />
-        <Route path="/terms" element={<Stub title="Terms" part={15} />} />
-        <Route path="/webhooks" element={<Stub title="Webhooks" part={15} />} />
+
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/docs/:slug" element={<DocsPage />} />
+        <Route path="/webhooks" element={<DocsPage forcedSlug="webhooks" />} />
+
+        <Route path="/changelog" element={<ChangelogPage />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/status" element={<StatusPage />} />
+        <Route path="/privacy" element={<LegalPage mode="privacy" />} />
+        <Route path="/terms" element={<LegalPage mode="terms" />} />
+        <Route path="/solutions" element={<Navigate to="/solutions/teams" replace />} />
+        <Route path="/solutions/:slug" element={<SolutionsPage />} />
+
         <Route path="/app" element={<AppLayout />}>
           <Route index element={<AppHome />} />
           <Route path="board" element={<AppBoard />} />
@@ -62,6 +74,7 @@ export default function App() {
             <Route path="webhooks" element={<SettingsWebhooks />} />
           </Route>
         </Route>
+
         <Route path="*" element={<Landing />} />
       </Routes>
     </MotionConfig>
