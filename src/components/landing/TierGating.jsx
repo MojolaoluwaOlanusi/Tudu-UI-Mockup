@@ -36,7 +36,13 @@ const TIERS = [
 const TIER_RANK = { free: 0, pro: 1, enterprise: 2 };
 
 export default function TierGating() {
-  const [selected, setSelected] = useState('free');
+  const [selected, setSelected] = useState(() => {
+    try {
+      return localStorage.getItem('tudu-mock-tier') === 'pro' ? 'pro' : 'free';
+    } catch {
+      return 'free';
+    }
+  });
   const selectedRank = TIER_RANK[selected];
   const unlocked = FEATURES.filter((f) => TIER_RANK[f.tier] <= selectedRank).length;
   const locked = FEATURES.length - unlocked;

@@ -19,6 +19,15 @@ import { PublicApiTile, WebhooksTile } from './bento/DevTiles';
 
 const ease = [0.2, 0, 0, 1];
 
+function handleMouseMove(e) {
+  const tiles = e.currentTarget.querySelectorAll('[data-spotlight]');
+  tiles.forEach((tile) => {
+    const r = tile.getBoundingClientRect();
+    tile.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    tile.style.setProperty('--my', `${e.clientY - r.top}px`);
+  });
+}
+
 export default function BentoGrid() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
@@ -52,7 +61,10 @@ export default function BentoGrid() {
         </motion.p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
+      <div
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12"
+        onMouseMove={handleMouseMove}
+      >
         <AiBreakdownTile className="sm:col-span-2 lg:col-span-7" />
         <CommandPaletteTile className="sm:col-span-1 lg:col-span-5" />
         <FocusModeTile className="sm:col-span-1 lg:col-span-4" />

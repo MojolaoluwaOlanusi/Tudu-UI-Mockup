@@ -1,6 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X } from 'lucide-react';
+
+function useIsMobile() {
+  const [m, setM] = useState(
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const h = (e) => setM(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  return m;
+}
 
 const CARDS = {
   trello: {
@@ -41,6 +54,8 @@ const CARDS = {
 
 function Card({ cardKey, card, mode, index }) {
   const [hovered, setHovered] = useState(false);
+  const isMobile = useIsMobile();
+  const showImpact = hovered || isMobile;
   const isDimmed =
     (cardKey === 'trello' && mode === 'jira') ||
     (cardKey === 'jira' && mode === 'trello');
@@ -125,7 +140,7 @@ function Card({ cardKey, card, mode, index }) {
         </ul>
 
         <AnimatePresence initial={false}>
-          {hovered && (
+          {showImpact && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}

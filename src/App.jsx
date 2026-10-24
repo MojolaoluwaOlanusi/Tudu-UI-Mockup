@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import Landing from './pages/Landing.jsx';
+import Demo from './pages/Demo.jsx';
 import Stub from './pages/Stub.jsx';
 
 export default function App() {
@@ -8,6 +9,7 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/demo" element={<Demo />} />
         <Route path="/pricing" element={<Stub title="Pricing" part={7} note="Full pricing with monthly/yearly toggle and currency switcher lands in Part 7." />} />
         <Route path="/login" element={<Stub title="Sign in" part={14} />} />
         <Route path="/signup" element={<Stub title="Create account" part={14} />} />

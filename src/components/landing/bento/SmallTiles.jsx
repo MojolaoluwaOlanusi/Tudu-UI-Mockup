@@ -35,6 +35,7 @@ export function PwaTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="PWA install" icon={<Download className="h-3.5 w-3.5" />} />
@@ -93,6 +94,7 @@ export function TemplatesTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Templates" icon={<LayoutTemplate className="h-3.5 w-3.5" />} />
@@ -150,6 +152,7 @@ export function SelfHostingTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Self-hosting" icon={<KeyRound className="h-3.5 w-3.5" />} />
@@ -199,6 +202,7 @@ export function NotificationsTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Notifications" icon={<Bell className="h-3.5 w-3.5" />} />
@@ -271,6 +275,7 @@ export function MarketplaceTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Sell templates" icon={<Package className="h-3.5 w-3.5" />} badge="Pro" />
@@ -324,6 +329,7 @@ export function IntegrationsTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Integrations" icon={<Github className="h-3.5 w-3.5" />} />
@@ -366,20 +372,29 @@ const BAR_VALS = [40, 65, 48, 78, 90, 72, 85];
 
 export function AnalyticsTile({ className }) {
   const { ref, inView } = useTileInView();
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(1);
 
   useEffect(() => {
     if (!inView) return;
-    const t0 = Date.now();
-    const duration = 1600;
-    let raf;
-    const step = () => {
-      const p = Math.min(1, (Date.now() - t0) / duration);
-      setProgress(p);
-      if (p < 1) raf = requestAnimationFrame(step);
+    let cancelled = false;
+    const t = setTimeout(() => {
+      if (cancelled) return;
+      setProgress(0);
+      const t0 = Date.now();
+      const duration = 1600;
+      let raf;
+      const step = () => {
+        if (cancelled) return;
+        const p = Math.min(1, (Date.now() - t0) / duration);
+        setProgress(p);
+        if (p < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
     };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
   }, [inView]);
 
   return (
@@ -390,6 +405,7 @@ export function AnalyticsTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Analytics that ship" icon={<BarChart3 className="h-3.5 w-3.5" />} />

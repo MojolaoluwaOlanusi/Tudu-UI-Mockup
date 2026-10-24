@@ -177,10 +177,10 @@ function Column({ column, cards, onCycleStatus, onDragDrop, onInteract }) {
   );
 }
 
-export default function LiveBoardHero() {
+export default function LiveBoardHero({ autoPlay = true }) {
   const [cards, setCards] = useState(INITIAL_CARDS);
   const [composer, setComposer] = useState('');
-  const [isInteractive, setIsInteractive] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(!autoPlay);
   const boardRef = useRef(null);
 
   const fireConfetti = useCallback(() => {
@@ -327,16 +327,20 @@ export default function LiveBoardHero() {
         </div>
       </form>
 
-      <div className="grid grid-cols-3 gap-3 p-4">
+      <div className="flex gap-3 overflow-x-auto p-4 snap-x snap-mandatory scroll-hidden sm:grid sm:grid-cols-3 sm:overflow-visible sm:snap-none">
         {COLUMNS.map((column) => (
-          <Column
+          <div
             key={column.id}
-            column={column}
-            cards={cards.filter((c) => c.column === column.id)}
-            onCycleStatus={handleCycleStatus}
-            onDragDrop={handleDragDrop}
-            onInteract={() => setIsInteractive(true)}
-          />
+            className="min-w-[280px] flex-shrink-0 snap-start sm:min-w-0"
+          >
+            <Column
+              column={column}
+              cards={cards.filter((c) => c.column === column.id)}
+              onCycleStatus={handleCycleStatus}
+              onDragDrop={handleDragDrop}
+              onInteract={() => setIsInteractive(true)}
+            />
+          </div>
         ))}
       </div>
     </div>

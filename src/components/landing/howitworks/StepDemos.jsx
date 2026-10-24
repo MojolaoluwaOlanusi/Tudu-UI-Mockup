@@ -10,14 +10,27 @@ function useLoop(fn, deps = []) {
   const inView = useInView(ref, { margin: '-40px', once: false });
   const reduced = useReducedMotion();
   useEffect(() => {
-    if (!inView || reduced) return;
+    if (reduced) return;
     let cancelled = false;
-    (async () => {
-      while (!cancelled) {
-        await fn(() => cancelled);
-      }
-    })();
-    return () => { cancelled = true; };
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      (async () => {
+        while (!cancelled) {
+          await fn(() => cancelled);
+        }
+      })();
+    };
+    const fallback = setTimeout(start, 900);
+    if (inView) {
+      clearTimeout(fallback);
+      start();
+    }
+    return () => {
+      cancelled = true;
+      clearTimeout(fallback);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, reduced, ...deps]);
   return { ref, inView, reduced };
@@ -242,15 +255,16 @@ export function OrganizeDemo() {
 /* ================================================================== */
 
 export function FocusDemo() {
-  const [seconds, setSeconds] = useState(25 * 60);
-  const [progress, setProgress] = useState(0);
+  const [seconds, setSeconds] = useState(25 * 60 - 42);
+  const [progress, setProgress] = useState(0.15);
   const [logged, setLogged] = useState(false);
 
   const { ref, reduced } = useLoop(async (cancelled) => {
     setSeconds(25 * 60 - 42);
     setProgress(0.15);
     setLogged(false);
-    await wait(200);
+    await wait(600);
+    if (cancelled()) return;
     for (let i = 0; i < 42; i++) {
       if (cancelled()) return;
       setSeconds((s) => Math.max(0, s - 1));
@@ -345,12 +359,14 @@ export function FocusDemo() {
 const SHIP_BARS = [40, 65, 55, 80, 95, 70, 88];
 
 export function ShipDemo() {
-  const [progress, setProgress] = useState(0);
-  const [count, setCount] = useState(0);
+  const [progress, setProgress] = useState(1);
+  const [count, setCount] = useState(100);
 
   const { ref, reduced } = useLoop(async (cancelled) => {
+    setProgress(1); setCount(100);
+    await wait(500); if (cancelled()) return;
     setProgress(0); setCount(0);
-    await wait(400); if (cancelled()) return;
+    await wait(120); if (cancelled()) return;
     const steps = 24;
     for (let i = 1; i <= steps; i++) {
       if (cancelled()) return;

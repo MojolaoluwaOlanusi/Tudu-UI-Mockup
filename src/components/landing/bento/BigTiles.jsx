@@ -61,6 +61,7 @@ export function AiBreakdownTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       {active && (
@@ -181,6 +182,7 @@ export function CommandPaletteTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       {active && (
@@ -301,6 +303,7 @@ export function FocusModeTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Focus Mode, built-in" icon={<Play className="h-3.5 w-3.5" />} />

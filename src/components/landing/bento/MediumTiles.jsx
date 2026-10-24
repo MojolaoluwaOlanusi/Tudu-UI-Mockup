@@ -36,6 +36,7 @@ export function NeverLoseWorkTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Never lose work" icon={<Undo2 className="h-3.5 w-3.5" />} />
@@ -163,6 +164,7 @@ export function BoardsThatFitTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Boards that fit you" icon={<Palette className="h-3.5 w-3.5" />} />
@@ -242,6 +244,7 @@ export function KeyboardFirstTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Keyboard-first" icon={<Terminal className="h-3.5 w-3.5" />} hint="n · b · ⌘K" />
@@ -343,6 +346,7 @@ export function WorkspacesTile({ className }) {
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+      data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
       <TileHeader title="Workspaces & roles" icon={<Users className="h-3.5 w-3.5" />} />

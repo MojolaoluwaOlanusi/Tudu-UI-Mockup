@@ -55,7 +55,7 @@ const PRICING_DATA = {
   },
 };
 
-function PaystackModal({ plan, amount, onClose }) {
+function PaystackModal({ plan, amount, onClose, onSuccess }) {
   const [step, setStep] = useState('form');
 
   useEffect(() => {
@@ -66,9 +66,10 @@ function PaystackModal({ plan, amount, onClose }) {
 
   useEffect(() => {
     if (step !== 'success') return;
+    onSuccess?.();
     const t = setTimeout(onClose, 3000);
     return () => clearTimeout(t);
-  }, [step, onClose]);
+  }, [step, onClose, onSuccess]);
 
   const content = (
     <div
@@ -172,7 +173,21 @@ export default function PricingSection() {
   const [yearly, setYearly] = useState(false);
   const [currency, setCurrency] = useState('NGN');
   const [paystack, setPaystack] = useState(null);
+  const [mockTier, setMockTier] = useState(() => {
+    try {
+      return localStorage.getItem('tudu-mock-tier');
+    } catch {
+      return null;
+    }
+  });
   const navigate = useNavigate();
+
+  const handleUpgradeSuccess = () => {
+    setMockTier('pro');
+    try {
+      localStorage.setItem('tudu-mock-tier', 'pro');
+    } catch {}
+  };
 
   const getPrice = (key) => {
     const d = PRICING_DATA[key];
@@ -336,17 +351,24 @@ export default function PricingSection() {
                 </button>
               )}
               {key === 'pro' && (
-                <BrushButton
-                  onClick={() =>
-                    setPaystack({
-                      plan: yearly ? 'yearly' : 'monthly',
-                      amount: yearly ? 75000 : 7500,
-                    })
-                  }
-                  className="w-full"
-                >
-                  {data.cta}
-                </BrushButton>
+                mockTier === 'pro' ? (
+                  <div className="flex w-full items-center justify-center gap-1.5 rounded-md border border-brand/40 bg-brand-subtle px-4 py-2 text-sm font-medium text-brand">
+                    <Check className="h-4 w-4" strokeWidth={2.5} />
+                    You&apos;re on Pro
+                  </div>
+                ) : (
+                  <BrushButton
+                    onClick={() =>
+                      setPaystack({
+                        plan: yearly ? 'yearly' : 'monthly',
+                        amount: yearly ? 75000 : 7500,
+                      })
+                    }
+                    className="w-full"
+                  >
+                    {data.cta}
+                  </BrushButton>
+                )
               )}
               {key === 'enterprise' && (
                 <button
@@ -367,6 +389,7 @@ export default function PricingSection() {
           plan={paystack.plan}
           amount={paystack.amount}
           onClose={() => setPaystack(null)}
+          onSuccess={handleUpgradeSuccess}
         />
       )}
     </section>

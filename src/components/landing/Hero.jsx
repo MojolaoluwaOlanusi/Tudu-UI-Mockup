@@ -16,11 +16,7 @@ const fadeUp = {
 export default function Hero() {
   const navigate = useNavigate();
 
-  const scrollToBoard = () => {
-    document
-      .getElementById('hero-board')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
+  const goToDemo = () => navigate('/demo');
 
   return (
     <section className="relative mx-auto max-w-7xl px-6 pt-16 pb-12 lg:pt-24 lg:pb-16">
@@ -79,7 +75,7 @@ export default function Hero() {
           </BrushButton>
           <button
             type="button"
-            onClick={scrollToBoard}
+            onClick={goToDemo}
             className="inline-flex h-10 items-center gap-2 rounded-md border border-line px-5 text-sm font-medium text-ink transition-colors hover:bg-subtle"
           >
             <Play className="h-4 w-4" />
