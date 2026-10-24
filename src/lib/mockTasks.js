@@ -190,14 +190,22 @@ export function parseTaskText(text) {
 
   const title = remaining.replace(/\s+/g, ' ').trim() || original.trim();
 
-  const matched = [];
-  if (category) matched.push('#' + category);
-  if (priority) matched.push(priority + ' priority');
+  const matchedItems = [];
+  if (category) {
+    matchedItems.push({ type: 'category', value: category, label: '#' + category });
+  }
+  if (priority) {
+    matchedItems.push({ type: 'priority', value: priority, label: priority + ' priority' });
+  }
   if (hasDate && date) {
     const opts = hasTime
       ? { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
       : { month: 'short', day: 'numeric' };
-    matched.push('Due ' + date.toLocaleDateString(undefined, opts));
+    matchedItems.push({
+      type: 'date',
+      value: 'date',
+      label: 'Due ' + date.toLocaleDateString(undefined, opts),
+    });
   }
 
   return {
@@ -205,7 +213,8 @@ export function parseTaskText(text) {
     due_date: date ? date.toISOString() : null,
     category,
     priority,
-    matched,
+    matched: matchedItems.map((m) => m.label),
+    matchedItems,
   };
 }
 

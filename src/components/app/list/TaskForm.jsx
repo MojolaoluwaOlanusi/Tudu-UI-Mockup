@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Calendar, Tag, Zap } from 'lucide-react';
 import { useApp } from '@/store/AppContext';
 import { parseTaskText } from '@/lib/mockTasks';
 
@@ -9,6 +9,30 @@ function toDateTimeLocal(iso) {
   const pad = (n) => String(n).padStart(2, '0');
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
     'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function chipStyle(item) {
+  if (item.type === 'date') {
+    return 'border-sky-500/30 bg-sky-500/10 text-sky-400';
+  }
+  if (item.type === 'category') {
+    if (item.value === 'work') return 'border-blue-500/30 bg-blue-500/10 text-blue-400';
+    if (item.value === 'personal') return 'border-purple-500/30 bg-purple-500/10 text-purple-400';
+    if (item.value === 'study') return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400';
+  }
+  if (item.type === 'priority') {
+    if (item.value === 'high') return 'border-red-500/30 bg-red-500/10 text-red-400';
+    if (item.value === 'medium') return 'border-amber-500/30 bg-amber-500/10 text-amber-400';
+    if (item.value === 'low') return 'border-line bg-line-subtle text-ink-muted';
+  }
+  return 'border-line bg-line-subtle text-ink-muted';
+}
+
+function chipIcon(item) {
+  if (item.type === 'date') return Calendar;
+  if (item.type === 'category') return Tag;
+  if (item.type === 'priority') return Zap;
+  return Tag;
 }
 
 export default function TaskForm({ onClose }) {
@@ -48,7 +72,8 @@ export default function TaskForm({ onClose }) {
     onClose();
   };
 
-  const hasPreview = preview && preview.matched.length > 0;
+  const items = preview && preview.matchedItems ? preview.matchedItems : [];
+  const hasPreview = items.length > 0;
 
   return (
     <div className="card p-5">
@@ -79,11 +104,21 @@ export default function TaskForm({ onClose }) {
           {hasPreview && (
             <div className="mt-2 rounded-lg border border-line-subtle bg-raised p-2.5">
               <div className="flex flex-wrap gap-1.5">
-                {preview.matched.map((m, i) => (
-                  <span key={i} className="rounded-sm border border-brand/30 bg-brand-subtle px-1.5 py-0.5 text-[10px] font-medium text-brand">
-                    {m}
-                  </span>
-                ))}
+                {items.map((item, i) => {
+                  const Icon = chipIcon(item);
+                  return (
+                    <span
+                      key={i}
+                      className={
+                        'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium ' +
+                        chipStyle(item)
+                      }
+                    >
+                      <Icon className="h-2.5 w-2.5 shrink-0" />
+                      {item.label}
+                    </span>
+                  );
+                })}
               </div>
               <div className="mt-2 flex items-center justify-between gap-2">
                 <p className="truncate text-[11px] text-ink-muted">
