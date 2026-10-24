@@ -12,6 +12,8 @@
           document.documentElement.classList.remove('dark', 'light');
           document.documentElement.classList.add(t);
           document.documentElement.style.colorScheme = t;
+          var d = localStorage.getItem('tudu-density');
+          document.documentElement.setAttribute('data-density', d === 'compact' ? 'compact' : 'comfortable');
         } catch (e) {}
       })();
     </script>

@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { applyTheme, getTheme } from '@/lib/theme';
+import { applyDensity, getDensity } from '@/lib/density';
 import { PageHeader, Section } from './primitives';
 
 export default function SettingsAppearance() {
   const [theme, setThemeState] = useState(getTheme());
-  const [density, setDensity] = useState('comfortable');
+  const [density, setDensityState] = useState(getDensity());
 
-  const setTheme = (t) => {
-    applyTheme(t);
-    setThemeState(t);
-  };
+  const setTheme = (t) => { applyTheme(t); setThemeState(t); };
+  const setDensity = (d) => { applyDensity(d); setDensityState(d); };
 
   return (
     <>
@@ -49,22 +48,46 @@ export default function SettingsAppearance() {
         </div>
       </Section>
 
-      <Section title="Density" description="Compact mode fits more rows.">
-        <div className="flex gap-2">
-          {['comfortable', 'compact'].map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDensity(d)}
-              className={
-                'rounded-md border px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ' +
-                (density === d ? 'border-brand bg-brand-subtle text-brand' : 'border-line text-ink-muted hover:text-ink')
-              }
-            >
-              {d}
-            </button>
-          ))}
+      <Section title="Density" description="Compact shrinks padding and font sizes so more fits on screen.">
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setDensity('comfortable')}
+            className={
+              'rounded-lg border p-4 text-left transition-colors ' +
+              (density === 'comfortable' ? 'border-brand bg-brand-subtle' : 'border-line hover:border-line-strong')
+            }
+          >
+            <p className="text-sm font-medium text-ink">Comfortable</p>
+            <p className="mt-1 text-[11px] text-ink-faint">Default spacing</p>
+            <div className="mt-3 space-y-1.5">
+              <div className="h-1.5 rounded bg-line-subtle" />
+              <div className="h-1.5 rounded bg-line-subtle" />
+              <div className="h-1.5 rounded bg-line-subtle" />
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDensity('compact')}
+            className={
+              'rounded-lg border p-3 text-left transition-colors ' +
+              (density === 'compact' ? 'border-brand bg-brand-subtle' : 'border-line hover:border-line-strong')
+            }
+          >
+            <p className="text-sm font-medium text-ink">Compact</p>
+            <p className="mt-1 text-[11px] text-ink-faint">Tighter spacing</p>
+            <div className="mt-2 space-y-0.5">
+              <div className="h-1 rounded bg-line-subtle" />
+              <div className="h-1 rounded bg-line-subtle" />
+              <div className="h-1 rounded bg-line-subtle" />
+              <div className="h-1 rounded bg-line-subtle" />
+              <div className="h-1 rounded bg-line-subtle" />
+            </div>
+          </button>
         </div>
+        <p className="text-[11px] text-ink-faint">
+          Tip: press <kbd className="rounded border border-line bg-raised px-1 font-mono text-[10px]">Ctrl+Shift+D</kbd> anywhere in the app to toggle.
+        </p>
       </Section>
     </>
   );

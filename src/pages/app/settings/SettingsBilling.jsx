@@ -28,7 +28,7 @@ export default function SettingsBilling() {
           {tier === 'pro' ? (
             <button type="button" onClick={() => pushToast('Cancel subscription (mock).', 'info')} className="btn-ghost !py-1.5 !text-[12px]">Cancel subscription</button>
           ) : (
-            <a href="#/pricing" className="btn-accent !py-1.5 !text-[12px]">Upgrade to Pro</a>
+            <a href="#/pricing?from=app" className="btn-accent !py-1.5 !text-[12px]">Upgrade to Pro</a>
           )}
         </div>
       </Section>

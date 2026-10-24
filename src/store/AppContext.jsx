@@ -31,6 +31,8 @@ export function AppProvider({ children }) {
   const [composerColumnId, setComposerColumnId] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [confirmDialog, setConfirmDialog] = useState(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
 
   useEffect(() => {
     if (!pomodoro && !timer) return;
@@ -78,12 +80,15 @@ export function AppProvider({ children }) {
     setComposerColumnId(null);
   }, []);
 
+  const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
+  const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
+  const openShortcutHelp = useCallback(() => setShortcutHelpOpen(true), []);
+  const closeShortcutHelp = useCallback(() => setShortcutHelpOpen(false), []);
+
   const pushToast = useCallback((message, variant = 'info') => {
     const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     setToasts((prev) => [...prev, { id, message, variant }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4500);
+    setTimeout(() => { setToasts((prev) => prev.filter((t) => t.id !== id)); }, 4500);
   }, []);
 
   const dismissToast = useCallback((id) => {
@@ -91,9 +96,7 @@ export function AppProvider({ children }) {
   }, []);
 
   const confirm = useCallback((opts) => {
-    return new Promise((resolve) => {
-      setConfirmDialog({ ...opts, resolve });
-    });
+    return new Promise((resolve) => { setConfirmDialog({ ...opts, resolve }); });
   }, []);
 
   const confirmResolve = useCallback((answer) => {
@@ -110,8 +113,7 @@ export function AppProvider({ children }) {
       ? columns.find((c) => c.id === input.column_id)
       : columns.find((c) => c.stage === (input.status || 'todo'));
     const newTask = {
-      id,
-      short_id: maxShort + 1,
+      id, short_id: maxShort + 1,
       title: input.title || 'Untitled task',
       description: input.description || null,
       status: targetColumn ? targetColumn.stage : 'todo',
@@ -120,8 +122,7 @@ export function AppProvider({ children }) {
       priority: input.priority || null,
       due_date: input.due_date || null,
       assignee: input.assignee || null,
-      subtasks: [],
-      timerRunning: false,
+      subtasks: [], timerRunning: false,
       board_id: input.board_id || 'b-1',
       deleted: false,
       created_at: new Date().toISOString(),
@@ -134,7 +135,6 @@ export function AppProvider({ children }) {
   const updateTask = useCallback((id, patch) => {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-
     let targetColumnId = null;
     let targetStage = null;
     if (patch.column_id !== undefined) {
@@ -144,7 +144,6 @@ export function AppProvider({ children }) {
       const col = columns.find((c) => c.stage === patch.status);
       if (col) { targetColumnId = col.id; targetStage = col.stage; }
     }
-
     if (targetColumnId && targetColumnId !== task.column_id) {
       const col = columns.find((c) => c.id === targetColumnId);
       if (col && col.wip_limit != null) {
@@ -155,21 +154,13 @@ export function AppProvider({ children }) {
         }
       }
     }
-
-    if (targetStage === 'done' && task.status !== 'done') {
-      fireConfetti();
-    }
-
+    if (targetStage === 'done' && task.status !== 'done') fireConfetti();
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
         const next = { ...t, ...patch };
-        if (patch.status !== undefined && patch.column_id === undefined && targetColumnId) {
-          next.column_id = targetColumnId;
-        }
-        if (patch.column_id !== undefined && patch.status === undefined && targetStage) {
-          next.status = targetStage;
-        }
+        if (patch.status !== undefined && patch.column_id === undefined && targetColumnId) next.column_id = targetColumnId;
+        if (patch.column_id !== undefined && patch.status === undefined && targetStage) next.status = targetStage;
         if (targetStage !== null) {
           if (targetStage === 'done' && t.status !== 'done') next.completed_at = new Date().toISOString();
           else if (targetStage !== 'done' && t.status === 'done') next.completed_at = null;
@@ -179,9 +170,7 @@ export function AppProvider({ children }) {
     );
   }, [tasks, columns, pushToast]);
 
-  const moveTask = useCallback((id, targetColumnId) => {
-    updateTask(id, { column_id: targetColumnId });
-  }, [updateTask]);
+  const moveTask = useCallback((id, targetColumnId) => { updateTask(id, { column_id: targetColumnId }); }, [updateTask]);
 
   const reorderColumns = useCallback((fromIndex, toIndex) => {
     if (fromIndex === toIndex) return;
@@ -210,9 +199,7 @@ export function AppProvider({ children }) {
   const updateColumn = useCallback((id, patch) => {
     setColumns((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
     if (patch.stage !== undefined) {
-      setTasks((prev) =>
-        prev.map((t) => (t.column_id === id ? { ...t, status: patch.stage } : t))
-      );
+      setTasks((prev) => prev.map((t) => (t.column_id === id ? { ...t, status: patch.stage } : t)));
     }
   }, []);
 
@@ -224,11 +211,7 @@ export function AppProvider({ children }) {
     const sameStage = siblings.find((c) => c.stage === target.stage);
     const fallback = sameStage || siblings[0];
     setColumns(siblings);
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.column_id === id ? { ...t, column_id: fallback.id, status: fallback.stage } : t
-      )
-    );
+    setTasks((prev) => prev.map((t) => (t.column_id === id ? { ...t, column_id: fallback.id, status: fallback.stage } : t)));
     return true;
   }, [columns]);
 
@@ -248,7 +231,6 @@ export function AppProvider({ children }) {
       return null;
     });
   }, []);
-
   const clearUndo = useCallback(() => setUndoToast(null), []);
 
   const value = useMemo(
@@ -262,6 +244,8 @@ export function AppProvider({ children }) {
       isComposerOpen, openComposer, closeComposer, composerColumnId,
       toasts, pushToast, dismissToast,
       confirm, confirmDialog, confirmResolve,
+      commandPaletteOpen, openCommandPalette, closeCommandPalette,
+      shortcutHelpOpen, openShortcutHelp, closeShortcutHelp,
     }),
     [
       syncStatus, cycleSyncStatus,
@@ -273,6 +257,8 @@ export function AppProvider({ children }) {
       isComposerOpen, openComposer, closeComposer, composerColumnId,
       toasts, pushToast, dismissToast,
       confirm, confirmDialog, confirmResolve,
+      commandPaletteOpen, openCommandPalette, closeCommandPalette,
+      shortcutHelpOpen, openShortcutHelp, closeShortcutHelp,
     ]
   );
 

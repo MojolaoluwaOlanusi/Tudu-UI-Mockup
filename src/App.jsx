@@ -3,6 +3,8 @@ import { MotionConfig } from 'framer-motion';
 import Landing from './pages/Landing.jsx';
 import Demo from './pages/Demo.jsx';
 import Stub from './pages/Stub.jsx';
+import AuthPage from './pages/AuthPage.jsx';
+import PricingPage from './pages/PricingPage.jsx';
 import AppLayout from './components/app/AppLayout.jsx';
 import AppHome from './pages/app/AppHome.jsx';
 import AppBoard from './pages/app/AppBoard.jsx';
@@ -26,10 +28,10 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/demo" element={<Demo />} />
-        <Route path="/pricing" element={<Stub title="Pricing" part={7} note="Full pricing with monthly/yearly toggle and currency switcher lands in Part 7." />} />
-        <Route path="/login" element={<Stub title="Sign in" part={14} />} />
-        <Route path="/signup" element={<Stub title="Create account" part={14} />} />
-        <Route path="/changelog" element={<Stub title="Changelog" part={7} />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/login" element={<AuthPage mode="login" />} />
+        <Route path="/signup" element={<AuthPage mode="signup" />} />
+        <Route path="/changelog" element={<Stub title="Changelog" part={15} />} />
         <Route path="/docs" element={<Stub title="Documentation" part={15} />} />
         <Route path="/docs/*" element={<Stub title="Documentation" part={15} />} />
         <Route path="/solutions/*" element={<Stub title="Solutions" part={15} />} />

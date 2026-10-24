@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
-import { Search, Plus, Filter } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Search, Filter } from 'lucide-react';
 import { useApp } from '@/store/AppContext';
 import TaskCard from '@/components/app/list/TaskCard';
 import TaskForm from '@/components/app/list/TaskForm';
@@ -26,17 +26,6 @@ export default function AppHome() {
     if (filters.priority) result = result.filter((t) => t.priority === filters.priority);
     return result;
   }, [tasks, search, filters]);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const tag = (e.target && e.target.tagName) || '';
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
-      if (e.key === 'n') { e.preventDefault(); openComposer(); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [openComposer]);
 
   const totalTasks = tasks.filter((t) => !t.deleted).length;
   const showingEmpty = totalTasks === 0;

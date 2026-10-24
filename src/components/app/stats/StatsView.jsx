@@ -112,7 +112,7 @@ function UpgradeTimeTracking() {
             Log billable hours, see a weekly report, and export to CSV. Upgrade to unlock.
           </p>
           <a
-            href="#/pricing"
+            href="#/pricing?from=app"
             className="mt-3 inline-flex items-center gap-1 rounded-md bg-brand px-3 py-1.5 text-[12px] font-semibold text-ink-inverse transition-colors hover:bg-brand-hover"
           >
             See plans
