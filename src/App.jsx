@@ -3,6 +3,12 @@ import { MotionConfig } from 'framer-motion';
 import Landing from './pages/Landing.jsx';
 import Demo from './pages/Demo.jsx';
 import Stub from './pages/Stub.jsx';
+import AppLayout from './components/app/AppLayout.jsx';
+import AppHome from './pages/app/AppHome.jsx';
+import AppBoard from './pages/app/AppBoard.jsx';
+import AppStats from './pages/app/AppStats.jsx';
+import AppAnalytics from './pages/app/AppAnalytics.jsx';
+import AppSettings from './pages/app/AppSettings.jsx';
 
 export default function App() {
   return (
@@ -25,6 +31,13 @@ export default function App() {
         <Route path="/privacy" element={<Stub title="Privacy" part={15} />} />
         <Route path="/terms" element={<Stub title="Terms" part={15} />} />
         <Route path="/webhooks" element={<Stub title="Webhooks" part={15} />} />
+        <Route path="/app" element={<AppLayout />}>
+          <Route index element={<AppHome />} />
+          <Route path="board" element={<AppBoard />} />
+          <Route path="stats" element={<AppStats />} />
+          <Route path="analytics" element={<AppAnalytics />} />
+          <Route path="settings" element={<AppSettings />} />
+        </Route>
         <Route path="*" element={<Landing />} />
       </Routes>
     </MotionConfig>
