@@ -9,6 +9,7 @@ import AppBoard from './pages/app/AppBoard.jsx';
 import AppStats from './pages/app/AppStats.jsx';
 import AppAnalytics from './pages/app/AppAnalytics.jsx';
 import AppSettings from './pages/app/AppSettings.jsx';
+import AppShared from './pages/app/AppShared.jsx';
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="stats" element={<AppStats />} />
           <Route path="analytics" element={<AppAnalytics />} />
           <Route path="settings" element={<AppSettings />} />
+          <Route path="shared/:id" element={<AppShared />} />
         </Route>
         <Route path="*" element={<Landing />} />
       </Routes>

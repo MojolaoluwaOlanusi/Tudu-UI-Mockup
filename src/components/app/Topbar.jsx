@@ -32,7 +32,7 @@ function NavTabs() {
           className={({ isActive }) =>
             'whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ' +
             (isActive
-              ? 'bg-raised text-ink'
+              ? 'bg-brand-subtle text-brand'
               : 'text-ink-muted hover:bg-raised hover:text-ink')
           }
         >
@@ -152,7 +152,6 @@ export default function Topbar() {
 
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-line-subtle bg-canvas/80 backdrop-blur">
-      {/* Desktop: single row, never squish */}
       <div className="hidden h-14 items-center gap-3 px-4 md:flex">
         <Link to="/app" className="shrink-0">
           <Wordmark size="sm" />
@@ -172,7 +171,6 @@ export default function Topbar() {
         </div>
       </div>
 
-      {/* Mobile: two rows, never squish */}
       <div className="md:hidden">
         <div className="flex h-12 items-center gap-2 px-3">
           <Link to="/app" className="shrink-0">
