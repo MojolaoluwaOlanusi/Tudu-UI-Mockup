@@ -1,8 +1,65 @@
 import { MOCK_POMODORO } from './mockTasks';
 
-function dayKey(iso) {
-  return new Date(iso).toISOString().slice(0, 10);
+function daysFromNow(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d;
 }
+
+export const MOCK_TIME_ENTRIES = [
+  { id: 'te-1', task_id: 't-1', description: 'Design work', billable: true, duration_seconds: 5400, started_at: daysFromNow(-0.5).toISOString() },
+  { id: 'te-2', task_id: 't-5', description: 'Pricing review', billable: true, duration_seconds: 3600, started_at: daysFromNow(-1).toISOString() },
+  { id: 'te-3', task_id: 't-2', description: 'API review', billable: false, duration_seconds: 1800, started_at: daysFromNow(-2).toISOString() },
+  { id: 'te-4', task_id: null, description: 'Team sync', billable: false, duration_seconds: 2700, started_at: daysFromNow(-3).toISOString() },
+  { id: 'te-5', task_id: 't-4', description: 'Launch notes', billable: true, duration_seconds: 3600, started_at: daysFromNow(-4).toISOString() },
+];
+
+export function computeTimeTracking(entries, tasks) {
+  const total = entries.reduce((s, e) => s + e.duration_seconds, 0);
+  const billable = entries.filter((e) => e.billable).reduce((s, e) => s + e.duration_seconds, 0);
+
+  const now = new Date();
+  const daily = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    const end = new Date(d);
+    end.setDate(end.getDate() + 1);
+    const key = d.toISOString().slice(0, 10);
+    const dayEntries = entries.filter((e) => {
+      const t = new Date(e.started_at);
+      return t >= d && t < end;
+    });
+    daily.push({
+      key,
+      label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+      seconds: dayEntries.reduce((s, e) => s + e.duration_seconds, 0),
+    });
+  }
+
+  const taskMap = new Map((tasks || []).map((t) => [t.id, t]));
+  const byTaskMap = new Map();
+  for (const e of entries) {
+    const key = e.task_id || 'none';
+    if (!byTaskMap.has(key)) {
+      const task = e.task_id ? taskMap.get(e.task_id) : null;
+      byTaskMap.set(key, {
+        taskId: e.task_id,
+        title: task ? task.title : e.description || 'Untimed',
+        seconds: 0,
+      });
+    }
+    byTaskMap.get(key).seconds += e.duration_seconds;
+  }
+  const byTask = Array.from(byTaskMap.values())
+    .sort((a, b) => b.seconds - a.seconds)
+    .slice(0, 5);
+
+  return { total, billable, daily, byTask };
+}
+
+function dayKey(iso) { return new Date(iso).toISOString().slice(0, 10); }
 
 export function computeStats(tasks, pomodoro) {
   const sessions = (pomodoro || MOCK_POMODORO).filter((s) => s.completed_at);
@@ -40,20 +97,13 @@ export function computeStats(tasks, pomodoro) {
     const key = s.task_id || 'none';
     if (!byTaskMap.has(key)) {
       const task = s.task_id ? taskMap.get(s.task_id) : null;
-      byTaskMap.set(key, {
-        taskId: s.task_id,
-        title: task ? task.title : 'No task',
-        minutes: 0,
-        sessions: 0,
-      });
+      byTaskMap.set(key, { taskId: s.task_id, title: task ? task.title : 'No task', minutes: 0, sessions: 0 });
     }
     const e = byTaskMap.get(key);
     e.minutes += s.duration;
     e.sessions += 1;
   }
-  const byTask = Array.from(byTaskMap.values())
-    .sort((a, b) => b.minutes - a.minutes)
-    .slice(0, 5);
+  const byTask = Array.from(byTaskMap.values()).sort((a, b) => b.minutes - a.minutes).slice(0, 5);
 
   const recent = sessions
     .slice()
@@ -67,17 +117,10 @@ export function computeStats(tasks, pomodoro) {
     }));
 
   return {
-    totals: {
-      minutes: totalMinutes,
-      sessions: totalSessions,
-      started: (pomodoro || MOCK_POMODORO).length,
-      abandoned: (pomodoro || MOCK_POMODORO).length - totalSessions,
-    },
+    totals: { minutes: totalMinutes, sessions: totalSessions, started: (pomodoro || MOCK_POMODORO).length, abandoned: (pomodoro || MOCK_POMODORO).length - totalSessions },
     today: { minutes: todayMinutes, sessions: todaySessions.length },
     week: { minutes: weekMinutes, sessions: weekSessions.length },
-    daily,
-    byTask,
-    recent,
+    daily, byTask, recent,
   };
 }
 
@@ -87,9 +130,7 @@ export function computePersonalAnalytics(tasks) {
   const todo = live.filter((t) => t.status === 'todo').length;
   const doing = live.filter((t) => t.status === 'doing').length;
   const done = live.filter((t) => t.status === 'done').length;
-  const overdue = live.filter(
-    (t) => t.due_date && t.status !== 'done' && new Date(t.due_date) < new Date()
-  ).length;
+  const overdue = live.filter((t) => t.due_date && t.status !== 'done' && new Date(t.due_date) < new Date()).length;
 
   const byPriority = { high: 0, medium: 0, low: 0, none: 0 };
   const byCategory = { work: 0, personal: 0, study: 0, none: 0 };
@@ -102,8 +143,7 @@ export function computePersonalAnalytics(tasks) {
     overview: {
       tasks: { total, todo, doing, done, overdue },
       completionRate: total === 0 ? 0 : Math.round((done / total) * 100),
-      byPriority,
-      byCategory,
+      byPriority, byCategory,
     },
   };
 }
@@ -135,13 +175,9 @@ export function computeCompletionBuckets(tasks, range) {
     for (const b of buckets) {
       const end = new Date(b.start);
       end.setDate(end.getDate() + bucketSize);
-      if (d >= b.start && d < end) {
-        b.value += 1;
-        break;
-      }
+      if (d >= b.start && d < end) { b.value += 1; break; }
     }
   }
-
   return buckets;
 }
 
@@ -176,10 +212,7 @@ export function computePrioritySplit(tasks) {
 
 export const TEAM_MOCK = {
   workspace: { id: 'ws-1', name: 'Team A', role: 'admin' },
-  overview: {
-    tasks: { total: 24, todo: 4, doing: 2, done: 18, overdue: 1 },
-    completionRate: 75,
-  },
+  overview: { tasks: { total: 24, todo: 4, doing: 2, done: 18, overdue: 1 }, completionRate: 75 },
   byMember: [
     { name: 'Mojola', email: 'mojola@tudu.app', role: 'admin', completed: 8, inProgress: 1, assigned: 3 },
     { name: 'Doyin', email: 'doyin@tudu.app', role: 'member', completed: 6, inProgress: 1, assigned: 2 },
