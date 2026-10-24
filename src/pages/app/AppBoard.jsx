@@ -1,7 +1,7 @@
 export default function AppBoard() {
   return (
     <div className="p-6 md:p-8">
-      <h1 className="text-2xl font-semibold text-ink">Board</h1>
+      <h1 className="font-handwritten text-3xl text-ink">Board</h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-muted">
         Kanban columns, cards, drag and drop, insertion lines, and the column
         settings panel land in Part 11.

@@ -13,6 +13,7 @@ export function AppProvider({ children }) {
   const [now, setNow] = useState(() => Date.now());
   const [tasks, setTasks] = useState(MOCK_TASKS);
   const [undoToast, setUndoToast] = useState(null);
+  const [isComposerOpen, setComposerOpen] = useState(false);
 
   useEffect(() => {
     if (!pomodoro && !timer) return;
@@ -23,10 +24,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!undoToast) return;
     const remaining = undoToast.expiresAt - Date.now();
-    if (remaining <= 0) {
-      setUndoToast(null);
-      return;
-    }
+    if (remaining <= 0) { setUndoToast(null); return; }
     const id = setTimeout(() => setUndoToast(null), remaining);
     return () => clearTimeout(id);
   }, [undoToast]);
@@ -34,7 +32,6 @@ export function AppProvider({ children }) {
   const pomodoroRemaining = pomodoro
     ? Math.max(0, Math.round(POMODORO_SECONDS - (now - pomodoro.startedAt) / 1000))
     : 0;
-
   const timerElapsed = timer
     ? Math.max(0, Math.round((now - timer.startedAt) / 1000))
     : 0;
@@ -44,21 +41,19 @@ export function AppProvider({ children }) {
     setNow(Date.now());
   }, []);
   const stopPomodoro = useCallback(() => setPomodoro(null), []);
-
   const startTimer = useCallback((taskTitle = null) => {
     setTimer({ taskTitle, startedAt: Date.now() });
     setNow(Date.now());
   }, []);
   const stopTimer = useCallback(() => setTimer(null), []);
-
   const openDetail = useCallback((payload) => setDetail(payload), []);
   const closeDetail = useCallback(() => setDetail(null), []);
-
   const cycleSyncStatus = useCallback(() => {
-    setSyncStatus((s) =>
-      s === 'live' ? 'connecting' : s === 'connecting' ? 'offline' : 'live'
-    );
+    setSyncStatus((s) => (s === 'live' ? 'connecting' : s === 'connecting' ? 'offline' : 'live'));
   }, []);
+
+  const openComposer = useCallback(() => setComposerOpen(true), []);
+  const closeComposer = useCallback(() => setComposerOpen(false), []);
 
   const createTask = useCallback((input) => {
     const id = 't-' + Date.now();
@@ -77,6 +72,7 @@ export function AppProvider({ children }) {
       timerRunning: false,
       board_id: input.board_id || 'b-1',
       deleted: false,
+      created_at: new Date().toISOString(),
     };
     setTasks((prev) => [newTask, ...prev]);
     return newTask;
@@ -90,11 +86,7 @@ export function AppProvider({ children }) {
     setTasks((prev) => {
       const task = prev.find((t) => t.id === id);
       if (!task) return prev;
-      setUndoToast({
-        taskId: task.id,
-        title: task.title,
-        expiresAt: Date.now() + UNDO_WINDOW_MS,
-      });
+      setUndoToast({ taskId: task.id, title: task.title, expiresAt: Date.now() + UNDO_WINDOW_MS });
       return prev.map((t) => (t.id === id ? { ...t, deleted: true } : t));
     });
   }, []);
@@ -111,49 +103,20 @@ export function AppProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      syncStatus,
-      setSyncStatus,
-      cycleSyncStatus,
-      pomodoro,
-      pomodoroRemaining,
-      startPomodoro,
-      stopPomodoro,
-      timer,
-      timerElapsed,
-      startTimer,
-      stopTimer,
-      detail,
-      openDetail,
-      closeDetail,
-      tasks,
-      createTask,
-      updateTask,
-      deleteTask,
-      undoDelete,
-      undoToast,
-      clearUndo,
+      syncStatus, setSyncStatus, cycleSyncStatus,
+      pomodoro, pomodoroRemaining, startPomodoro, stopPomodoro,
+      timer, timerElapsed, startTimer, stopTimer,
+      detail, openDetail, closeDetail,
+      tasks, createTask, updateTask, deleteTask, undoDelete, undoToast, clearUndo,
+      isComposerOpen, openComposer, closeComposer,
     }),
     [
-      syncStatus,
-      cycleSyncStatus,
-      pomodoro,
-      pomodoroRemaining,
-      startPomodoro,
-      stopPomodoro,
-      timer,
-      timerElapsed,
-      startTimer,
-      stopTimer,
-      detail,
-      openDetail,
-      closeDetail,
-      tasks,
-      createTask,
-      updateTask,
-      deleteTask,
-      undoDelete,
-      undoToast,
-      clearUndo,
+      syncStatus, cycleSyncStatus,
+      pomodoro, pomodoroRemaining, startPomodoro, stopPomodoro,
+      timer, timerElapsed, startTimer, stopTimer,
+      detail, openDetail, closeDetail,
+      tasks, createTask, updateTask, deleteTask, undoDelete, undoToast, clearUndo,
+      isComposerOpen, openComposer, closeComposer,
     ]
   );
 

@@ -1,7 +1,7 @@
 export default function AppSettings() {
   return (
     <div className="p-6 md:p-8">
-      <h1 className="text-2xl font-semibold text-ink">Settings</h1>
+      <h1 className="font-handwritten text-3xl text-ink">Settings</h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-muted">
         Account, notifications, appearance, integrations, workspace, billing,
         license, API, and webhooks land in Part 13.

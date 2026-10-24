@@ -1,39 +1,7 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 import { useApp } from '@/store/AppContext';
 import TaskDetail from '@/components/app/list/TaskDetail';
-
-function FallbackDetail({ detail, onClose }) {
-  const title =
-    detail?.type === 'board'
-      ? 'Board settings'
-      : detail?.type
-        ? detail.type
-        : 'Detail';
-  return (
-    <div className="flex h-full flex-col bg-surface">
-      <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-line-subtle px-4">
-        <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-          {title}
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close panel"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="flex flex-1 items-center justify-center p-6 text-center">
-        <p className="max-w-[280px] text-sm text-ink-muted">
-          {detail?.title || 'Coming soon'}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default function DetailPanel() {
   const { detail, closeDetail, tasks } = useApp();
@@ -45,36 +13,30 @@ export default function DetailPanel() {
       : null;
 
   useEffect(() => {
-    if (detail?.type === 'task' && !task) {
-      closeDetail();
-    }
+    if (detail?.type === 'task' && !task) closeDetail();
   }, [detail, task, closeDetail]);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') closeDetail();
-    };
+    const onKey = (e) => { if (e.key === 'Escape') closeDetail(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, closeDetail]);
 
   const body = !open ? null : detail.type === 'task' && task ? (
     <TaskDetail task={task} onClose={closeDetail} />
-  ) : (
-    <FallbackDetail detail={detail} onClose={closeDetail} />
-  );
+  ) : null;
 
   return (
     <>
-      <aside
-        className={
-          'hidden shrink-0 overflow-hidden border-l border-line-subtle bg-surface transition-[width] duration-200 ease-out md:block ' +
-          (open ? 'w-96' : 'w-0')
-        }
+      <motion.aside
+        initial={false}
+        animate={{ width: open && detail?.type === 'task' && task ? 384 : 0 }}
+        transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+        className="relative hidden shrink-0 overflow-hidden rounded-xl border border-line-subtle bg-surface md:block"
       >
-        <div className="flex h-full w-96 flex-col">{body}</div>
-      </aside>
+        <div className="h-full w-96">{body}</div>
+      </motion.aside>
 
       <AnimatePresence>
         {open && (
@@ -91,9 +53,9 @@ export default function DetailPanel() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
-              className="w-full max-w-sm bg-surface shadow-2xl"
+              className="w-full max-w-sm overflow-hidden rounded-l-2xl bg-surface shadow-2xl"
             >
-              <div className="flex h-full flex-col">{body}</div>
+              <div className="h-full">{body}</div>
             </motion.aside>
           </motion.div>
         )}

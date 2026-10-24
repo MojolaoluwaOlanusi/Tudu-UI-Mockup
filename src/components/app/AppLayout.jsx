@@ -9,10 +9,12 @@ export default function AppLayout() {
     <AppProvider>
       <div className="flex h-screen flex-col overflow-hidden bg-canvas text-ink">
         <Topbar />
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 gap-3 p-3">
           <Sidebar />
-          <main data-main className="min-w-0 flex-1 overflow-y-auto">
-            <Outlet />
+          <main className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-line-subtle bg-surface">
+            <div data-main className="min-h-0 flex-1 overflow-y-auto">
+              <Outlet />
+            </div>
           </main>
           <DetailPanel />
         </div>

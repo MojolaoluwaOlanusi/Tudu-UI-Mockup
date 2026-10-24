@@ -35,7 +35,8 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-        brand: ['Caveat', 'cursive'],
+        brand: ['Caveat', '"Comic Sans MS"', 'cursive'],
+        handwritten: ['Caveat', '"Comic Sans MS"', 'cursive'],
       },
       borderRadius: {
         sm: 'var(--r-sm)',
@@ -55,10 +56,20 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'slide-in-right': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        'check-draw': {
+          '0%': { strokeDashoffset: '48' },
+          '60%': { strokeDashoffset: '0' },
+          '100%': { strokeDashoffset: '0' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 180ms cubic-bezier(0.2, 0, 0, 1)',
         'slide-up': 'slide-up 260ms cubic-bezier(0.3, 0, 0, 1)',
+        'slide-in-right': 'slide-in-right 200ms cubic-bezier(0.2, 0, 0, 1)',
       },
     },
   },
