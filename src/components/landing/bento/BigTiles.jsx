@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Clock, Search, Play, Pause, BarChart3 } from 'lucide-react';
-import { TileHeader, useTileInView, useCursorSpotlight, wait, Cursor } from './shared';
+import { Sparkles, Clock, Search, Play, Pause } from 'lucide-react';
+import { TileHeader, useTileInView, wait, Cursor } from './shared';
 import { cn } from '@/lib/utils';
 
 /* ------------------------------------------------------------------ */
-/* 1. AI breakdown — types "Plan app launch", generates 6 subtasks    */
+/* 1. AI breakdown - types "Plan app launch", generates 6 subtasks    */
 /* ------------------------------------------------------------------ */
 
 const PROMPT = 'Plan app launch';
@@ -20,7 +20,6 @@ const SUBTASKS = [
 
 export function AiBreakdownTile({ className }) {
   const { ref, inView } = useTileInView();
-  const { pos, active } = useCursorSpotlight(ref);
   const [typed, setTyped] = useState('');
   const [phase, setPhase] = useState('idle');
   const [shown, setShown] = useState(0);
@@ -64,12 +63,6 @@ export function AiBreakdownTile({ className }) {
       data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
-      {active && (
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{ background: `radial-gradient(400px circle at ${pos.x}px ${pos.y}px, var(--accent-subtle), transparent 60%)` }}
-        />
-      )}
       <div className="relative">
         <TileHeader title="AI that actually helps" icon={<Sparkles className="h-3.5 w-3.5" />} badge="Pro" />
 
@@ -134,7 +127,7 @@ export function AiBreakdownTile({ className }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 2. Command palette — ⌘K, filter chips, live results                 */
+/* 2. Command palette - Cmd+K, filter chips, live results              */
 /* ------------------------------------------------------------------ */
 
 const CMD_FILTER = '@me due:today';
@@ -142,7 +135,6 @@ const CMD_RESULTS = ['Design dashboard', 'Review API spec', 'Ship pricing page']
 
 export function CommandPaletteTile({ className }) {
   const { ref, inView } = useTileInView();
-  const { pos, active } = useCursorSpotlight(ref);
   const [showK, setShowK] = useState(false);
   const [filter, setFilter] = useState('');
   const [results, setResults] = useState([]);
@@ -185,12 +177,6 @@ export function CommandPaletteTile({ className }) {
       data-spotlight=""
       className={cn('relative overflow-hidden rounded-xl border border-line bg-surface p-5 transition-colors duration-300 hover:border-line-strong', className)}
     >
-      {active && (
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{ background: `radial-gradient(400px circle at ${pos.x}px ${pos.y}px, var(--accent-subtle), transparent 60%)` }}
-        />
-      )}
       <div className="relative">
         <TileHeader title="Command everything" icon={<Search className="h-3.5 w-3.5" />} hint="⌘K" />
 
@@ -258,7 +244,7 @@ export function CommandPaletteTile({ className }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 3. Focus Mode — Pomodoro timer + animated stats                     */
+/* 3. Focus Mode - Pomodoro timer + animated stats                     */
 /* ------------------------------------------------------------------ */
 
 export function FocusModeTile({ className }) {
